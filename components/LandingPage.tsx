@@ -1,6 +1,14 @@
+"use client"
+
 import Link from "next/link"
+import SignUp from "./SignUp"
+import Login from "./Login"
+import { useState } from "react"
 
 export default function LandingPage() {
+  const [showSignUp, setShowSignUp] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header/Navbar */}
@@ -14,15 +22,15 @@ export default function LandingPage() {
             <Link href="#" className="text-gray-600 hover:text-indigo-600">
               Features
             </Link>
-            <Link href="#" className="text-gray-600 hover:text-indigo-600">
+            <button onClick={() => setShowLogin(true)} className="text-gray-600 hover:text-indigo-600">
               Login
-            </Link>
-            <Link
-              href="#"
+            </button>
+            <button
+              onClick={() => setShowSignUp(true)}
               className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition duration-300"
             >
               Sign Up
-            </Link>
+            </button>
           </div>
         </nav>
       </header>
@@ -37,7 +45,10 @@ export default function LandingPage() {
             <p className="text-xl mb-8">
               Personalized mini-tutors guide you step by step—no more confusion, no more fear.
             </p>
-            <button className="bg-white text-indigo-600 font-bold py-2 px-6 rounded-full hover:bg-indigo-100 transition duration-300">
+            <button
+              onClick={() => setShowSignUp(true)}
+              className="bg-white text-indigo-600 font-bold py-2 px-6 rounded-full hover:bg-indigo-100 transition duration-300"
+            >
               Get Started
             </button>
           </div>
@@ -166,6 +177,52 @@ export default function LandingPage() {
             </form>
           </div>
         </section>
+
+        {/* Modal for Sign Up */}
+        {showSignUp && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" id="my-modal">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <div className="mt-3 text-center">
+                <h3 className="text-lg leading-6 font-medium text-gray-900">Sign Up</h3>
+                <div className="mt-2 px-7 py-3">
+                  <SignUp setShowSignUp={setShowSignUp} />
+                </div>
+                <div className="items-center px-4 py-3">
+                  <button
+                    id="ok-btn"
+                    className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    onClick={() => setShowSignUp(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal for Login */}
+        {showLogin && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" id="my-modal">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+              <div className="mt-3 text-center">
+                <h3 className="text-lg leading-6 font-medium text-gray-900">Login</h3>
+                <div className="mt-2 px-7 py-3">
+                  <Login setShowLogin={setShowLogin} />
+                </div>
+                <div className="items-center px-4 py-3">
+                  <button
+                    id="ok-btn"
+                    className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    onClick={() => setShowLogin(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Footer */}
