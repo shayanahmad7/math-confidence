@@ -31,7 +31,7 @@ async function connectToDatabase() {
     if (!db) {
       await client.connect();
       db = client.db('math-confidence');
-      collection = db.collection<Thread>('messages');
+      collection = db.collection<Thread>('threads2');
     }
   }
 
@@ -39,12 +39,44 @@ async function connectToDatabase() {
 export const maxDuration = 30;
 
 async function cancelActiveRuns(threadId: string) {
-  // ... (keep the existing cancelActiveRuns function)
-}
+    const runs = await openai.beta.threads.runs.list(threadId);
+    const cancellableRuns = runs.data.filter((run) => ['queued', 'in_progress'].includes(run.status));
+  
+    for (const run of cancellableRuns) {
+      try {
+        const updatedRun = await openai.beta.threads.runs.retrieve(threadId, run.id);
+        if (['queued', 'in_progress'].includes(updatedRun.status)) {
+          await openai.beta.threads.runs.cancel(threadId, run.id);
+          console.log(`Successfully cancelled run ${run.id}`);
+        } else {
+          console.log(`Run ${run.id} is already in ${updatedRun.status} status, no need to cancel`);
+        }
+      } catch (error) {
+        console.error(`Failed to cancel run ${run.id}:`, error);
+      }
+    }
+  }
+  
+  async function saveMessageToDatabase(threadId: string, role: 'user' | 'assistant', content: string) {
+    if (!collection) {
+      await connectToDatabase();
+    }
+  
+    const message: Message = {
+      role,
+      content,
+      timestamp: new Date(),
+    };
+  
+    await collection!.updateOne(
+      { threadId },
+      {
+        $push: { messages: message },
+      },
+      { upsert: true }
+    );
+  }
 
-async function saveMessageToDatabase(threadId: string, role: 'user' | 'assistant', content: string) {
-  // ... (keep the existing saveMessageToDatabase function)
-}
 export async function POST(req: Request) {
   try {
     // Parse the request body

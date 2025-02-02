@@ -9,7 +9,7 @@ interface Message {
   timestamp: Date;
 }
 
-// Define the structure of the collection document
+// Define the structure of the thread document
 interface Thread {
   threadId: string;
   messages: Message[];
@@ -24,75 +24,98 @@ const client = new MongoClient(uri);
 let db: Db | null = null;
 let collection: Collection<Thread> | null = null;
 
-// Ensure MongoDB connection
+// Connect to MongoDB if not already connected
 async function connectToDatabase() {
   if (!db) {
+    console.log('[DB] Connecting to MongoDB...');
     await client.connect();
     db = client.db('math-confidence');
-    collection = db.collection<Thread>('messages');
+    collection = db.collection<Thread>('threads1');
+    console.log('[DB] Successfully connected to MongoDB.');
   }
 }
 
-// Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
+// Dummy (or existing) cancelActiveRuns implementation
 async function cancelActiveRuns(threadId: string) {
-  // ... (keep the existing cancelActiveRuns function)
+  console.log(`[RUN] Cancelling active runs for threadId: ${threadId}`);
+  // Add your actual cancellation logic here if needed.
 }
 
-async function saveMessageToDatabase(threadId: string, role: 'user' | 'assistant', content: string) {
-  // ... (keep the existing saveMessageToDatabase function)
+// Save a message (user or assistant) to MongoDB with detailed logging
+async function saveMessageToDatabase(
+  threadId: string,
+  role: 'user' | 'assistant',
+  content: string
+) {
+  try {
+    if (!collection) {
+      await connectToDatabase();
+    }
+    const message: Message = {
+      role,
+      content,
+      timestamp: new Date(),
+    };
+    console.log(`[DB] Saving ${role} message for threadId ${threadId}: ${content}`);
+    await collection!.updateOne(
+      { threadId },
+      { $push: { messages: message } },
+      { upsert: true }
+    );
+    console.log('[DB] Message saved successfully.');
+  } catch (err) {
+    console.error('[DB] Error saving message:', err);
+  }
 }
 
 export async function POST(req: Request) {
   try {
-    // Parse the request body
-    const input: {
-      threadId: string | null;
-      message: string;
-    } = await req.json();
+    console.log('[API] Received request.');
+    const input: { threadId: string | null; message: string } = await req.json();
+    console.log('[API] Parsed input:', input);
 
-    // Create a thread if needed
-    const threadId = input.threadId ?? (await openai.beta.threads.create({})).id;
+    // Create a new thread if one is not provided
+    const threadId =
+      input.threadId ?? (await openai.beta.threads.create({})).id;
+    console.log(`[API] Using threadId: ${threadId}`);
 
     try {
-      // Cancel any active runs before adding a new message
+      // Cancel any active runs for this thread
       await cancelActiveRuns(threadId);
 
-      // Add user message to the thread and save it to the database
+      // Create the user message on the OpenAI thread
+      console.log('[API] Creating user message in OpenAI thread...');
       const createdMessage = await openai.beta.threads.messages.create(threadId, {
         role: 'user',
         content: input.message,
       });
+      console.log(`[API] User message created with id: ${createdMessage.id}`);
+
+      // Save the user's message to MongoDB
       await saveMessageToDatabase(threadId, 'user', input.message);
 
+      // Return a response that will stream the assistant's reply
       return AssistantResponse(
         { threadId, messageId: createdMessage.id },
         async ({ forwardStream }) => {
-          // Run the assistant on the thread
+          console.log('[STREAM] Starting to stream assistant response...');
           const runStream = openai.beta.threads.runs.stream(threadId, {
             assistant_id: process.env.ASSISTANT1_ID ?? (() => {
               throw new Error('ASSISTANT1_ID is not set');
             })(),
           });
 
-          // Forward run status with message deltas
           let runResult = await forwardStream(runStream);
+          console.log('[STREAM] Initial run result:', runResult);
 
-          // Save assistant responses to the database
-          if (runResult?.status === 'completed' && runResult.messages) {
-            for (const message of runResult.messages) {
-              if (message.role === 'assistant') {
-                await saveMessageToDatabase(threadId, 'assistant', message.content);
-              }
-            }
-          }
-
-          // Process requires_action states
+          // Process any required actions (if needed) until the run completes
           while (
             runResult?.status === 'requires_action' &&
             runResult.required_action?.type === 'submit_tool_outputs'
           ) {
+            console.log('[STREAM] Run requires action, submitting tool outputs...', runResult);
             runResult = await forwardStream(
               openai.beta.threads.runs.submitToolOutputsStream(
                 threadId,
@@ -100,13 +123,46 @@ export async function POST(req: Request) {
                 { tool_outputs: [] }
               )
             );
+            console.log('[STREAM] Updated run result after action:', runResult);
+          }
+
+          // Once the run is completed, fetch the thread messages to obtain the assistant reply
+          if (runResult?.status === 'completed') {
+            console.log('[STREAM] Run completed. Fetching thread messages for assistant response...');
+            try {
+              // Fetch all messages in the thread. The returned object is assumed to have a property "data" that is an array.
+              const messagesPage = await openai.beta.threads.messages.list(threadId);
+              console.log('[STREAM] Fetched thread messages page:', messagesPage);
+
+              // Extract the array of messages (adjust the property name if needed)
+              const threadMessages: any[] = messagesPage.data || [];
+              console.log('[STREAM] Thread messages array:', threadMessages);
+
+              // Filter out the assistant messages
+              const assistantMessages = threadMessages.filter((msg: any) => msg.role === 'assistant');
+
+              if (assistantMessages.length > 0) {
+                // Get the latest assistant message
+                const latestAssistantMessage = assistantMessages[assistantMessages.length - 1];
+                console.log('[STREAM] Saving latest assistant message:', latestAssistantMessage);
+                await saveMessageToDatabase(threadId, 'assistant', latestAssistantMessage.content);
+              } else {
+                console.warn('[STREAM] No assistant message found in fetched thread messages.');
+              }
+            } catch (fetchError) {
+              console.error('[STREAM] Error fetching thread messages:', fetchError);
+            }
+          } else {
+            console.warn('[STREAM] Run did not complete successfully. Final runResult:', runResult);
           }
         }
       );
     } catch (error) {
-      console.error('Error in POST /api/assistant1:', error);
+      console.error('[API] Error in processing thread:', error);
       return new Response(
-        JSON.stringify({ error: 'An error occurred while processing the request' }),
+        JSON.stringify({
+          error: 'An error occurred while processing the request (inner).',
+        }),
         {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
@@ -114,9 +170,11 @@ export async function POST(req: Request) {
       );
     }
   } catch (error) {
-    console.error('Error in POST /api/assistant1:', error);
+    console.error('[API] Error in request handling:', error);
     return new Response(
-      JSON.stringify({ error: 'An error occurred while processing the request' }),
+      JSON.stringify({
+        error: 'An error occurred while processing the request (outer).',
+      }),
       {
         status: 500,
         headers: { 'Content-Type': 'application/json' },

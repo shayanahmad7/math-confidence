@@ -357,7 +357,7 @@ export default function DashboardPage() {
         {selectedSection ? (
         <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-indigo-500">
             <h2 className="text-2xl font-bold text-indigo-800 mb-4">
-            Bot Tutor for {selectedSection}
+            Interactive AI Tutor for {selectedSection}
             </h2>
             {(() => {
             const idx = sectionNames.indexOf(selectedSection)
