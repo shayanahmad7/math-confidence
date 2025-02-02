@@ -1,4 +1,4 @@
-Interactive Pre-Algebra AI Textbook ✨
+# Interactive Pre-Algebra AI Textbook ✨
 
 Welcome to our Interactive Pre-Algebra AI Textbook project! This platform uses an AI tutor to guide learners step by step through pre-algebra topics—automatically checking for mastery and encouraging a growth mindset along the way.
 
