@@ -10,7 +10,7 @@ import 'katex/dist/katex.min.css'
 
 const Chat2: React.FC = () => {
   const { status, messages: aiMessages, input, submitMessage, handleInputChange, stop } = useAssistant({ 
-    api: '/api/assistant2',
+    api: '/api/assistant1',
     body: { assistantId: process.env.ASSISTANT2_ID }
   })
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -21,7 +21,7 @@ const Chat2: React.FC = () => {
     const initialMessages: Message[] = [
       {
         id: 'initial-1',
-        content: "Welcome to the section Whole Numbers: Rounding Numbers.\nWe will go over this section step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS!  ",
+        content: "Welcome to the section Whole Numbers: Rounding Numbers.\nWe will go over this section step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS! ",
         role: 'assistant'
       },
       {
@@ -143,7 +143,7 @@ const Chat2: React.FC = () => {
             type="text"
             value={input}
             onChange={handleInputChange}
-            placeholder="Ask about Rounding Numbers..."
+            placeholder="Ask about Naming Numbers..."
             disabled={isStreaming}
             className="flex-1 rounded-l-full bg-transparent px-6 py-3 focus:outline-none"
           />
@@ -178,4 +178,4 @@ const Chat2: React.FC = () => {
   )
 }
 
-export default Chat2
+export default Chat2;

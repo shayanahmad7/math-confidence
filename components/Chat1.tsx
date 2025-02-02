@@ -178,4 +178,4 @@ const Chat1: React.FC = () => {
   )
 }
 
-export default Chat1
+export default Chat1;
