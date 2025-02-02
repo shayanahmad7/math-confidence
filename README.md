@@ -1,36 +1,135 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Interactive Pre-Algebra AI Textbook ✨
 
-## Getting Started
+Welcome to our Interactive Pre-Algebra AI Textbook project! This platform uses an AI tutor to guide learners step by step through pre-algebra topics—automatically checking for mastery and encouraging a growth mindset along the way.
 
-First, run the development server:
+## Overview 🏆
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Problem Statement
+
+Many students (and adults!) struggle with math confidence. They believe they just “don’t have the math gene.” Our research shows that personalized, step-by-step practice and positive reinforcement can dramatically improve outcomes. But not everyone has access to one-on-one tutoring.
+
+### Our Solution
+
+We built an AI-powered interactive textbook for Pre-Algebra, providing mini tutors for each topic. This system:
+
+- Breaks the content into small, digestible sections (e.g. “Naming Numbers,” “Rounding Whole Numbers,” etc.).
+- Walks the learner through each step, asking questions and clarifying misunderstandings.
+- Tracks mastery by checking if the student can answer 3 questions in a row correctly.
+- Offers positive, supportive messages, emphasizing that anyone can learn math with the right approach!
+
+## Key Features ⚙️
+
+### AI Chat
+
+A dynamic chat interface (using OpenAI Beta Threads) that:
+
+- Automatically greets the user or sends a topic-specific prompt (e.g. “Section 1: Naming Numbers”).
+- Streams real-time answers and clarifications from the AI.
+- Saves conversation history to MongoDB so learners can pick up where they left off.
+
+### Modular Tutors
+
+Instead of one big AI model for the entire book, we can conceptually assign each chapter or section its own “mini tutor.” This ensures a focused learning experience.
+
+### Mastery Checks
+
+If the learner consistently answers questions correctly, the system marks that section as mastered and encourages them to move to the next topic.
+
+### Growth Mindset Cues
+
+Encouraging language (“You got this!”) is embedded throughout. Mistakes are treated as natural learning steps, not failures.
+
+## Architecture 🏗️
+
+### Frontend
+
+- Next.js + React + ai/react for an elegant chat UI.
+- `Chat1.tsx` automatically sends a prompt (like “1”) to start each section, then streams the AI’s replies.
+
+### Backend
+
+- `/api/assistant1/route.ts`: A Next.js route using OpenAI Beta Threads.
+- Stores messages in MongoDB (threads1 collection) for each (threadId).
+- On each user message, we:
+  - Add it to the Beta Thread.
+  - Stream the assistant’s response.
+  - Save that response in Mongo for future reference.
+
+## Installation 🛠️
+
+Clone this repo:
+
+```sh
+git clone https://github.com/YourUser/interactive-prealgebra.git
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```sh
+cd interactive-prealgebra
+npm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Set environment variables in `.env`:
 
-## Learn More
+```sh
+OPENAI_API_KEY=your_openai_key
+ASSISTANT1_ID=your_assistant_id
+MONGODB_URI=your_mongo_uri
+```
 
-To learn more about Next.js, take a look at the following resources:
+Run the dev server:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```sh
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Navigate to `http://localhost:3000` and chat away!
 
-## Deploy on Vercel
+## Usage 🚀
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Sign up or log in (if you have authentication).
+2. Pick a chapter/section from the sidebar.
+3. Observe the AI automatically send a “section number” or greeting to start the conversation.
+4. Ask questions in the chatbox or follow the prompts.
+5. Reach mastery by answering 3 correct questions in a row, then unlock the next topic.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Contributing 🤝
+
+1. Fork the repo.
+2. Create a feature branch (e.g. `git checkout -b feature/new-algebra-content`).
+3. Push and open a pull request describing your changes.
+
+## Roadmap 🛣️
+
+- Expand beyond pre-algebra to more math domains.
+- Support text-to-speech for accessibility.
+- Add built-in “growth mindset” quizzes.
+- Enhance real-time collaboration (e.g., teacher and student viewing the same chat).
+
+## License ⚖️
+
+This project is licensed under the MIT License. Feel free to use, modify, and distribute.
+
+## Acknowledgements 🙏
+
+We would like to thank the following for their support and contributions:
+
+- OpenAI for providing the AI models and API access.
+- MongoDB for database solutions.
+- The open-source community for their invaluable tools and libraries.
+- Our beta testers for their feedback and suggestions.
+
+## Contact 📧
+
+For any questions, suggestions, or feedback, please reach out to us at support@interactive-prealgebra.com.
+
+## Stay Connected 🌐
+
+Follow us on social media to stay updated with the latest features and announcements:
+
+- Twitter: [@InteractivePreAlgebra](https://twitter.com/InteractivePreAlgebra)
+- Facebook: [Interactive Pre-Algebra](https://facebook.com/InteractivePreAlgebra)
+- LinkedIn: [Interactive Pre-Algebra AI Textbook](https://linkedin.com/company/interactive-prealgebra)
+
+Thank you for being a part of our journey to make math learning more accessible and enjoyable for everyone!
