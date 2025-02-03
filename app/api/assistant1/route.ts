@@ -130,22 +130,27 @@ export async function POST(req: Request) {
           if (runResult?.status === 'completed') {
             console.log('[STREAM] Run completed. Fetching thread messages for assistant response...');
             try {
-              // Fetch all messages in the thread. The returned object is assumed to have a property "data" that is an array.
+              // Fetch all messages in the thread
               const messagesPage = await openai.beta.threads.messages.list(threadId);
               console.log('[STREAM] Fetched thread messages page:', messagesPage);
 
-              // Extract the array of messages (adjust the property name if needed)
+              // Extract the array of messages
               const threadMessages: any[] = messagesPage.data || [];
               console.log('[STREAM] Thread messages array:', threadMessages);
 
               // Filter out the assistant messages
               const assistantMessages = threadMessages.filter((msg: any) => msg.role === 'assistant');
-
               if (assistantMessages.length > 0) {
                 // Get the latest assistant message
                 const latestAssistantMessage = assistantMessages[assistantMessages.length - 1];
                 console.log('[STREAM] Saving latest assistant message:', latestAssistantMessage);
-                await saveMessageToDatabase(threadId, 'assistant', latestAssistantMessage.content);
+
+                // Extract plain text from the assistant's content
+                const assistantContent = extractPlainText(latestAssistantMessage.content);
+                console.log('[STREAM] Extracted plain text:', assistantContent);
+
+                // Save the plain text to MongoDB
+                await saveMessageToDatabase(threadId, 'assistant', assistantContent);
               } else {
                 console.warn('[STREAM] No assistant message found in fetched thread messages.');
               }
@@ -181,4 +186,16 @@ export async function POST(req: Request) {
       }
     );
   }
+}
+
+// Helper function to extract plain text from assistant's content
+function extractPlainText(content: any): string {
+  if (Array.isArray(content)) {
+    // Concatenate all text values from the array
+    return content
+      .filter((item: any) => item.type === 'text')
+      .map((item: any) => item.text.value)
+      .join(' ');
+  }
+  return String(content); // Fallback to string conversion
 }

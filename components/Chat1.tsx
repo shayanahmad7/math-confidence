@@ -21,7 +21,7 @@ const Chat1: React.FC = () => {
     const initialMessages: Message[] = [
       {
         id: 'initial-1',
-        content: "Welcome to the section aaaa Whole Numbers: Naming Numbers.\nWe will go over this section step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS! ",
+        content: "Welcome to the section Whole Numbers: Naming Numbers.\nWe will go over this section step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS! ",
         role: 'assistant'
       },
       {
