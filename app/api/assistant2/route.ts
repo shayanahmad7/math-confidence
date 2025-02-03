@@ -70,6 +70,18 @@ async function saveMessageToDatabase(
   }
 }
 
+// Helper function to extract plain text from assistant's content
+function extractPlainText(content: any): string {
+  if (Array.isArray(content)) {
+    // Concatenate all text values from the array
+    return content
+      .filter((item: any) => item.type === 'text')
+      .map((item: any) => item.text.value)
+      .join(' ');
+  }
+  return String(content); // Fallback to string conversion
+}
+
 export async function POST(req: Request) {
   try {
     console.log('[API] Received request.');
@@ -142,7 +154,7 @@ export async function POST(req: Request) {
               const assistantMessages = threadMessages.filter((msg: any) => msg.role === 'assistant');
               if (assistantMessages.length > 0) {
                 // Get the latest assistant message
-                const latestAssistantMessage = assistantMessages[assistantMessages.length - 1];
+                const latestAssistantMessage = assistantMessages[0]; // Latest message is at index 0
                 console.log('[STREAM] Saving latest assistant message:', latestAssistantMessage);
 
                 // Extract plain text from the assistant's content
@@ -186,16 +198,4 @@ export async function POST(req: Request) {
       }
     );
   }
-}
-
-// Helper function to extract plain text from assistant's content
-function extractPlainText(content: any): string {
-  if (Array.isArray(content)) {
-    // Concatenate all text values from the array
-    return content
-      .filter((item: any) => item.type === 'text')
-      .map((item: any) => item.text.value)
-      .join(' ');
-  }
-  return String(content); // Fallback to string conversion
 }

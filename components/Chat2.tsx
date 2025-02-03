@@ -10,7 +10,7 @@ import 'katex/dist/katex.min.css'
 
 const Chat2: React.FC = () => {
   const { status, messages: aiMessages, input, submitMessage, handleInputChange, stop } = useAssistant({ 
-    api: '/api/assistant1',
+    api: '/api/assistant2',
     body: { assistantId: process.env.ASSISTANT2_ID }
   })
   const messagesEndRef = useRef<HTMLDivElement>(null)
