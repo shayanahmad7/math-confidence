@@ -1,47 +1,56 @@
-'use client'
+'use client';
+import React, { useRef, useEffect, useState } from 'react';
+import { Message, useAssistant } from 'ai/react';
+import { Send, Loader2, User, Bot, StopCircle } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
-import React, { useRef, useEffect, useState } from 'react'
-import { Message, useAssistant } from 'ai/react'
-import { Send, Loader2, User, Bot, StopCircle } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
-import remarkMath from 'remark-math'
-import rehypeKatex from 'rehype-katex'
-import 'katex/dist/katex.min.css'
+interface ChatProps {
+  userId: string; // The user's unique ID
+}
 
-const Chat2: React.FC = () => {
-  const { status, messages: aiMessages, input, submitMessage, handleInputChange, stop } = useAssistant({ 
+const Chat2: React.FC<ChatProps> = ({ userId }) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  // Use the useAssistant hook to interact with the OpenAI Assistants API
+  const { status, messages: aiMessages, input, submitMessage, handleInputChange, stop } = useAssistant({
     api: '/api/assistant2',
-    body: { assistantId: process.env.ASSISTANT2_ID }
-  })
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [isStreaming, setIsStreaming] = useState(false)
+    body: { assistantId: process.env.ASSISTANT1_ID, userId }, // Pass only userId to the backend
+  });
 
+  // Initialize the chat with some default messages
   useEffect(() => {
     const initialMessages: Message[] = [
       {
         id: 'initial-1',
-        content: "Welcome to the section Whole Numbers: Rounding Numbers.\nWe will go over this section step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS! ",
-        role: 'assistant'
+        content:
+          "Welcome to the section Whole Numbers: Naming Numbers.\nWe will go over this section step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS! ",
+        role: 'assistant',
       },
       {
         id: 'initial-2',
-        content: "Would you like to start?",
-        role: 'assistant'
-      }
+        content: 'Would you like to start?',
+        role: 'assistant',
+      },
     ];
-
     setMessages([...initialMessages, ...aiMessages]);
   }, [aiMessages]);
 
+  // Scroll to the bottom of the chat when new messages are added
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messagesEndRef]); //Corrected dependency
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messagesEndRef]);
 
+  // Update streaming state based on the status
   useEffect(() => {
-    setIsStreaming(status === 'in_progress')
-  }, [status])
+    setIsStreaming(status === 'in_progress');
+  }, [status]);
 
+  // Render Markdown content for messages
   const renderMessage = (content: string) => {
     return (
       <ReactMarkdown
@@ -49,55 +58,43 @@ const Chat2: React.FC = () => {
         rehypePlugins={[rehypeKatex]}
         className="prose prose-sm dark:prose-invert max-w-none"
         components={{
-          h1: ({ ...props }) => (
-            <h1 className="text-2xl font-bold my-4 text-center" {...props} />
-          ),
-          h2: ({ ...props }) => (
-            <h2 className="text-xl font-bold my-3 text-center" {...props} />
-          ),
-          h3: ({ ...props }) => (
-            <h3 className="text-lg font-bold my-3" {...props} />
-          ),
-          p: ({ ...props }) => (
-            <p className="my-2" {...props} />
-          ),
-          ul: ({ ...props }) => (
-            <ul className="my-2 space-y-1 list-disc pl-6" {...props} />
-          ),
-          ol: ({ ...props }) => (
-            <ol className="my-2 space-y-1 list-decimal pl-6" {...props} />
-          ),
-          li: ({ ...props }) => (
-            <li className="leading-normal" {...props} />
-          ),
+          h1: ({ ...props }) => <h1 className="text-2xl font-bold my-4 text-center" {...props} />,
+          h2: ({ ...props }) => <h2 className="text-xl font-bold my-3 text-center" {...props} />,
+          h3: ({ ...props }) => <h3 className="text-lg font-bold my-3" {...props} />,
+          p: ({ ...props }) => <p className="my-2" {...props} />,
+          ul: ({ ...props }) => <ul className="my-2 space-y-1 list-disc pl-6" {...props} />,
+          ol: ({ ...props }) => <ol className="my-2 space-y-1 list-decimal pl-6" {...props} />,
+          li: ({ ...props }) => <li className="leading-normal" {...props} />,
           blockquote: ({ ...props }) => (
             <blockquote className="border-l-4 border-gray-300 pl-4 my-2" {...props} />
-          )
+          ),
         }}
       >
         {content}
       </ReactMarkdown>
-    )
-  }
+    );
+  };
 
+  // Handle form submission (sending a message)
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (isStreaming) {
-      await stop()
-      setIsStreaming(false)
+      await stop(); // Stop the current streaming response
+      setIsStreaming(false);
     } else if (input.trim()) {
-      setIsStreaming(true)
+      setIsStreaming(true); // Start streaming
       try {
-        await submitMessage()
+        await submitMessage(); // Send the message to the backend
       } catch (error) {
-        console.error('Error submitting message:', error)
-        setIsStreaming(false)
+        console.error('Error submitting message:', error);
+        setIsStreaming(false);
       }
     }
-  }
+  };
 
   return (
     <div className="flex h-[600px] flex-col rounded-xl bg-gray-50 shadow-inner">
+      {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4">
         {messages.map((m: Message) => (
           <div key={m.id} className={`mb-4 flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -111,7 +108,7 @@ const Chat2: React.FC = () => {
               ) : (
                 <Bot className="mr-2 h-5 w-5 shrink-0 mt-1" />
               )}
-              <div 
+              <div
                 className={`${m.role === 'user' ? 'prose-invert' : ''} 
                   prose-headings:text-inherit prose-p:text-inherit
                   prose-strong:text-inherit prose-ol:text-inherit prose-ul:text-inherit
@@ -134,10 +131,8 @@ const Chat2: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="border-t border-gray-200 bg-white p-4"
-      >
+      {/* Input Form */}
+      <form onSubmit={handleSubmit} className="border-t border-gray-200 bg-white p-4">
         <div className="flex rounded-full bg-gray-100 shadow-inner">
           <input
             type="text"
@@ -154,8 +149,8 @@ const Chat2: React.FC = () => {
               isStreaming
                 ? 'bg-red-500 hover:bg-red-600'
                 : input.trim()
-                  ? 'bg-blue-500 hover:bg-blue-600'
-                  : 'bg-gray-400 cursor-not-allowed'
+                ? 'bg-blue-500 hover:bg-blue-600'
+                : 'bg-gray-400 cursor-not-allowed'
             }`}
           >
             {isStreaming ? (
@@ -175,7 +170,7 @@ const Chat2: React.FC = () => {
         </div>
       </form>
     </div>
-  )
-}
+  );
+};
 
 export default Chat2;

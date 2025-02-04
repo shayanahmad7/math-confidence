@@ -378,7 +378,7 @@ export default function DashboardPage() {
             }
 
             // Otherwise, render the found component
-            return <ChatComponent />
+            return <ChatComponent userId={user.id}/>
             })()}
         </div>
         ) : (
