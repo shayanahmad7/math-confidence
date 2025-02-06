@@ -23,7 +23,7 @@ const openai = new OpenAI({
 const uri = process.env.MONGODB_URI || '';
 const client = new MongoClient(uri);
 let db: Db | null = null;
-let collection: Collection<Thread> | null = null;
+let collection: Collection<Thread>;
 
 // Connect to MongoDB if not already connected
 async function connectToDatabase() {
@@ -79,6 +79,65 @@ async function saveMessageToDatabase(
     console.error('[DB] Error saving message:', err);
   }
 }
+
+// GET endpoint to fetch chat history for a specific user
+export async function GET(req: Request) {
+  try {
+    console.log('[API] Received GET request for chat history.');
+
+    // Parse query parameters
+    const url = new URL(req.url);
+    const userId = url.searchParams.get('userId');
+    console.log(`[API] Parsed userId from query parameters: ${userId}`);
+
+    if (!userId) {
+      console.error('[API] Missing userId in query parameters.');
+      return new Response(
+        JSON.stringify({ error: 'Missing userId in query parameters.' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Connect to the database if not already connected
+    if (!collection) {
+      await connectToDatabase();
+    }
+
+    // Query the database for the user's thread
+    console.log(`[DB] Fetching thread for userId: ${userId}`);
+    const thread = await collection.findOne({ userId });
+    if (!thread) {
+      console.warn(`[DB] No thread found for userId: ${userId}`);
+      return new Response(JSON.stringify({ messages: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`[DB] Fetched thread for userId ${userId}:`, thread);
+
+    // Extract and return the messages
+    const messages = thread.messages || [];
+    console.log(`[API] Returning ${messages.length} messages for userId: ${userId}`);
+    return new Response(JSON.stringify({ messages }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('[API] Error fetching chat history:', error);
+    return new Response(
+      JSON.stringify({ error: 'An error occurred while fetching chat history.' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+}
+
 
 export async function POST(req: Request) {
   try {

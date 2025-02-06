@@ -7,6 +7,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
+
 interface ChatProps {
   userId: string; // The user's unique ID
 }
@@ -22,28 +23,62 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
     body: { assistantId: process.env.ASSISTANT1_ID, userId }, // Pass only userId to the backend
   });
 
-  // Initialize the chat with some default messages
+  const [fetchedMessages, setFetchedMessages] = useState<Message[]>([]); // Store fetched messages
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true); // Track loading state
+
   useEffect(() => {
-    const initialMessages: Message[] = [
-      {
-        id: 'initial-1',
-        content:
-          "Welcome to the section Whole Numbers: Naming Numbers.\nWe will go over this section step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS! ",
-        role: 'assistant',
-      },
-      {
-        id: 'initial-2',
-        content: 'Would you like to start?',
-        role: 'assistant',
-      },
-    ];
-    setMessages([...initialMessages, ...aiMessages]);
-  }, [aiMessages]);
+    const fetchChatHistory = async () => {
+      if (fetchedMessages.length > 0) return; // Prevent multiple fetches
+
+      try {
+        setIsLoadingHistory(true); // Start loading state
+        const response = await fetch(`/api/assistant1?userId=${userId}`);
+        const reader = response.body?.getReader();
+        if (!reader) return;
+
+        const decoder = new TextDecoder("utf-8");
+        let partialData = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          partialData += decoder.decode(value, { stream: true });
+
+          try {
+            const parsedData = JSON.parse(partialData);
+            const newMessages = parsedData.messages.map((msg: any, index: number) => ({
+              id: `msg-${index}`,
+              role: msg.role,
+              content: msg.content,
+            }));
+
+            setFetchedMessages(newMessages); // Store fetched messages
+            setMessages(newMessages); // Render messages immediately
+            setIsLoadingHistory(false); // Stop loading state
+          } catch (e) {
+            // Wait until the full JSON object is received
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching chat history:", error);
+        setIsLoadingHistory(false); // Stop loading even if there's an error
+      }
+    };
+
+    fetchChatHistory();
+  }, [userId]); // Runs once per userId change
+
+  // Append AI messages while keeping fetched messages
+  useEffect(() => {
+    setMessages([...fetchedMessages, ...aiMessages]); // Ensures messages persist
+  }, [aiMessages]); // Runs whenever AI messages change
+
 
   // Scroll to the bottom of the chat when new messages are added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messagesEndRef]);
+  }, [messages]);
 
   // Update streaming state based on the status
   useEffect(() => {
@@ -96,6 +131,15 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
     <div className="flex h-[600px] flex-col rounded-xl bg-gray-50 shadow-inner">
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4">
+        {/* Show loading message while fetching previous messages */}
+        {isLoadingHistory ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-gray-500 text-sm text-center">
+              <Loader2 className="inline-block h-5 w-5 animate-spin mr-2" />
+              Loading previous chats...
+            </div>
+          </div>
+        ) : null}
         {messages.map((m: Message) => (
           <div key={m.id} className={`mb-4 flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
