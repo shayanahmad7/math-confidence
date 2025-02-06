@@ -1,6 +1,5 @@
 /* eslint-disable */
 
-
 import { AssistantResponse } from 'ai';
 import OpenAI from 'openai';
 import { MongoClient, Db, Collection } from 'mongodb';
