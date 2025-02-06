@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { CheckCircle, Circle, Book, LogOut, ChevronDown, ChevronUp } from "lucide-react"
+import Confetti from 'react-confetti'
 
 import Chat1 from "@/components/Chat1"
 import Chat2 from "@/components/Chat2"
@@ -245,182 +246,293 @@ const chatMap = [
     const sectionNames = [ "Naming Numbers", "Rounding Numbers", "Addition of Whole Numbers", "Subtraction of Whole Numbers", "Multiplication of Whole Numbers", "Division of Whole Numbers", "Word Problems", "Quiz 1", "Basic Concepts", "Addition of Integers", "Subtraction of Integers", "Multiplication of Integers", "Division of Integers", "Exponents", "Order of Operations", "Quiz 2", "Basic Concepts", "Reducing Fractions to Lowest Terms", "Changing Fractions to Higher Terms", "Changing Improper Fractions to Mixed Numbers", "Changing Mixed Numbers to Improper Fractions", "Quiz 3", "Multiplying Fractions", "Dividing Fractions", "Adding and Subtracting Fractions", "Complex Fractions", "Reciprocals and Rationalizing Denominators", "Quiz 4", "Introduction to Decimals", "Converting Fractions to Decimals", "Adding and Subtracting Decimals", "Multiplying Decimals", "Dividing Decimals", "Decimals and Fractions", "Rounding Decimals", "Quiz 5", "Understanding Percent", "Calculating Percentages", "Increasing and Decreasing Numbers by Percent", "Percent Problems", "Applications of Percent", "Quiz 6", "Simplifying Algebraic Expressions", "Solving Simple Equations", "Solving Multi-step Equations", "Using Equations to Solve Problems", "Checking Solutions", "Quiz 7", "Understanding Ratios", "Properties of Proportions", "Solving Proportions", "Applications of Proportions", "Similar Figures and Scale Drawings", "Quiz 8", "Points, Lines, and Planes", "Angles and Their Measures", "Constructing Angles and Lines", "Polygons and Circles", "Area and Perimeter", "Volume and Surface Area", "Quiz 9", "Units of Measurement", "Measuring Length", "Measuring Area and Volume", "Temperature and Time", "Converting Units", "Quiz 10", "Introduction to Graphing", "Plotting Points", "Graphing Linear Equations", "Slope and Intercept", "Graphing Inequalities", "Quiz 11", "Understanding Monomials", "Adding and Subtracting Polynomials", "Multiplying Polynomials", "Special Products", "Factoring Polynomials", "Quiz 12", "Final Exam", "Overcoming Math Anxiety"]
 
   
-export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null)
-  const [selectedSection, setSelectedSection] = useState<string | null>(null)
-  const [expandedChapters, setExpandedChapters] = useState<{ [key: string]: boolean }>({})
-  const router = useRouter()
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (user) {
-        setUser(user)
-      } else {
+    export default function DashboardPage() {
+      const [user, setUser] = useState<any>(null)
+      const [selectedSection, setSelectedSection] = useState<string | null>(null)
+      const [expandedChapters, setExpandedChapters] = useState<{ [key: string]: boolean }>({})
+      const [viewMode, setViewMode] = useState<"chat" | "pdf">("chat")
+      const router = useRouter()
+      const [numPages, setNumPages] = useState<number | null>(null)
+      const [pageNumber, setPageNumber] = useState(1)
+      const [masteredSections, setMasteredSections] = useState<{ [key: string]: boolean }>({})
+      const [showPopup, setShowPopup] = useState(false)
+      const [showConfetti, setShowConfetti] = useState(false)
+    
+      useEffect(() => {
+        const fetchUser = async () => {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser()
+          if (user) {
+            setUser(user)
+          } else {
+            router.push("/")
+          }
+        }
+        fetchUser()
+    
+        // Load mastered sections from local storage
+        const savedMasteredSections = localStorage.getItem("masteredSections")
+        if (savedMasteredSections) {
+          setMasteredSections(JSON.parse(savedMasteredSections))
+        }
+      }, [router])
+    
+      useEffect(() => {
+        // Save mastered sections to local storage whenever it changes
+        localStorage.setItem("masteredSections", JSON.stringify(masteredSections))
+      }, [masteredSections])
+    
+      const handleSignOut = async () => {
+        await supabase.auth.signOut()
         router.push("/")
       }
-    }
-    fetchUser()
-  }, [router])
+    
+      const toggleChapter = (chapterTitle: string) => {
+        setExpandedChapters((prev) => ({
+          ...prev,
+          [chapterTitle]: !prev[chapterTitle],
+        }))
+      }
+    
+      const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+        setNumPages(numPages)
+      }
+    
+      const handleMastery = (isMastered: boolean) => {
+        if (selectedSection) {
+          setMasteredSections((prev) => ({ ...prev, [selectedSection]: isMastered }))
+    
+          // Update the chapters state to reflect the mastery status
+          const updatedChapters = chapters.map((chapter) => ({
+            ...chapter,
+            sections: chapter.sections.map((section) =>
+              section.title === selectedSection ? { ...section, mastered: isMastered } : section,
+            ),
+          }))
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push("/")
-  }
-
-  const toggleChapter = (chapterTitle: string) => {
-    setExpandedChapters((prev) => ({
-      ...prev,
-      [chapterTitle]: !prev[chapterTitle],
-    }))
-  }
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600">
-        <div className="text-white text-2xl font-bold">Loading...</div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex min-h-screen bg-gradient-to-r from-blue-100 to-purple-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-lg overflow-y-auto h-screen">
-        <div className="p-4">
-          <h2 className="text-xl font-semibold text-indigo-800 mb-4 flex items-center">
-            <Book className="mr-2" />
-            Table of Contents
-          </h2>
-          <nav className="space-y-2">
-            {chapters.map((chapter, chapterIndex) => (
-              <div key={chapterIndex} className="mb-2">
-                <button
-                  onClick={() => toggleChapter(chapter.title)}
-                  className="flex items-center justify-between w-full text-left font-medium text-indigo-700 hover:bg-indigo-50 rounded p-2 transition-colors duration-200"
-                >
-                  <span>{chapter.title}</span>
-                  {expandedChapters[chapter.title] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                </button>
-                {expandedChapters[chapter.title] && (
-                  <ul className="ml-4 mt-2 space-y-1">
-                    {chapter.sections.map((section, sectionIndex) => (
-                      <li key={sectionIndex}>
-                        <button
-                          onClick={() => setSelectedSection(section.title)}
-                          className={`flex items-center w-full text-left px-2 py-1 rounded transition-colors duration-200 ${
-                            selectedSection === section.title
-                              ? "bg-indigo-100 text-indigo-800"
-                              : "hover:bg-indigo-50 text-gray-700 hover:text-indigo-700"
-                          }`}
-                        >
-                          <span className="mr-2">
-                            {section.mastered ? (
-                              <CheckCircle className="w-4 h-4 text-green-500" />
-                            ) : (
-                              <Circle className="w-4 h-4 text-gray-400" />
-                            )}
-                          </span>
-                          <span className="text-sm">{section.title}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </nav>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 p-8 overflow-y-auto">
-        <div className="mb-8 flex justify-between items-center">
-          <h1
-            className="text-3xl font-bold text-indigo-800 cursor-pointer hover:text-indigo-600 transition-colors duration-200"
-            onClick={() => setSelectedSection(null)}
-          >
-            Dashboard
-          </h1>
-          <button
-            onClick={handleSignOut}
-            className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200 flex items-center"
-          >
-            <LogOut className="mr-2" />
-            Sign Out
-          </button>
-        </div>
-        
-        
-        {selectedSection ? (
-        <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-indigo-500">
-            <h2 className="text-2xl font-bold text-indigo-800 mb-4">
-            Interactive AI Tutor for {selectedSection}
-            </h2>
-            {(() => {
-            const idx = sectionNames.indexOf(selectedSection)
-            if (idx === -1) {
-                // This means selectedSection isn't in sectionNames at all
-                return <div>No chat component mapped for this section yet.</div>
-            }
-
-            // Attempt to get the correct Chat component from chatMap
-            const ChatComponent = chatMap[idx]
-            if (!ChatComponent) {
-                // If idx is beyond the length of chatMap, or that slot is undefined
-                return (
-                <p className="text-indigo-600">
-                    The interactive AI tutor for this section will be integrated here.
-                </p>
-                )
-            }
-
-            // Otherwise, render the found component
-            return <ChatComponent userId={user.id}/>
-            })()}
-        </div>
-        ) : (
-          // Welcome Screen
-          <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-indigo-500">
-            <h1 className="text-3xl font-bold text-indigo-800 mb-4">
-              Welcome to Your Interactive Pre-Algebra AI Textbook
-            </h1>
-            <p className="text-indigo-600 mb-4">
-              This interactive textbook is based on "Pre-Algebra DeMYSTiFieD" by Allan Bluman (McGraw-Hill). We credit
-              the author for the original material, which we've used to train an AI that provides a dynamic learning
-              experience.
-            </p>
-            <h2 className="text-xl font-semibold text-indigo-700 mb-2">How It Works</h2>
-            <p className="text-indigo-600 mb-4">
-              Each topic is split into smaller sections. You'll have a specialized 'mini tutor' for each section. Simply
-              click a subsection on the left to start a tutoring session.
-            </p>
-            <h2 className="text-xl font-semibold text-indigo-700 mb-2">How to Use</h2>
-            <ul className="list-disc list-inside text-indigo-600 mb-4">
-              <li>Select a section from the left to launch its mini tutor.</li>
-              <li>The tutor will teach or review the concept, ask you questions, give examples, and quiz you.</li>
-              <li>
-                If you get 3 questions correct in a row, the system marks that topic as 'mastered.' You can then move on
-                to the next one (or revisit anytime).
-              </li>
-              <li>You can always come back to a previous section to review or practice more.</li>
-            </ul>
-            <p className="text-indigo-800 font-medium bg-indigo-100 p-4 rounded-lg">
-              Remember, everyone can learn math with the right approach. Let's build your confidence together!
-            </p>
+          // Show confetti if the section is mastered
+          if (isMastered) {
+            setShowConfetti(true)
+            setTimeout(() => setShowConfetti(false), 5000) // Hide confetti after 5 seconds
+          }
+    
+          // TODO: Implement backend logic to save mastery status
+          //only frontend for now
+        }
+        setShowPopup(false)
+      }
+    
+      if (!user) {
+        return (
+          <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600">
+            <div className="text-white text-2xl font-bold">Loading...</div>
           </div>
-        )}
-        {/* Disclaimer */}
-        <div className="mt-8 text-sm text-indigo-500 bg-white p-4 rounded-lg shadow">
-          <p>
-            Disclaimer: This platform is a prototype that uses content from 'Pre-Algebra DeMYSTiFieD' (McGraw-Hill) to
-            train AI tutors. We credit the author, Allan Bluman, for the original material. This project is for
-            demonstration purposes only.
+        )
+      }
+    
+      const renderPDFViewer = () => (
+        <div className="w-full bg-gray-100 rounded flex flex-col items-center justify-center p-4">
+          <p className="mt-4">
+            Page {pageNumber} of {numPages}
           </p>
+          <div className="mt-4 flex gap-4">
+            <button
+              onClick={() => setPageNumber((page) => Math.max(page - 1, 1))}
+              disabled={pageNumber <= 1}
+              className="px-4 py-2 bg-indigo-500 text-white rounded disabled:bg-gray-300"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPageNumber((page) => Math.min(page + 1, numPages || page))}
+              disabled={pageNumber >= (numPages || 1)}
+              className="px-4 py-2 bg-indigo-500 text-white rounded disabled:bg-gray-300"
+            >
+              Next
+            </button>
+          </div>
         </div>
-      </main>
-    </div>
-  )
-}
+      )
+    
+      return (
+        <div className="flex min-h-screen bg-gradient-to-r from-blue-100 to-purple-100">
+          {/* Sidebar */}
+          <aside className="w-64 bg-white shadow-lg overflow-y-auto h-screen">
+            <div className="p-4">
+              <h2 className="text-xl font-semibold text-indigo-800 mb-4 flex items-center">
+                <Book className="mr-2" />
+                Table of Contents
+              </h2>
+              <nav className="space-y-2">
+                {chapters.map((chapter, chapterIndex) => (
+                  <div key={chapterIndex} className="mb-2">
+                    <button
+                      onClick={() => toggleChapter(chapter.title)}
+                      className="flex items-center justify-between w-full text-left font-medium text-indigo-700 hover:bg-indigo-50 rounded p-2 transition-colors duration-200"
+                    >
+                      <span>{chapter.title}</span>
+                      {expandedChapters[chapter.title] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    </button>
+                    {expandedChapters[chapter.title] && (
+                      <ul className="ml-4 mt-2 space-y-1">
+                        {chapter.sections.map((section, sectionIndex) => (
+                          <li key={sectionIndex}>
+                            <button
+                              onClick={() => setSelectedSection(section.title)}
+                              className={`flex items-center w-full text-left px-2 py-1 rounded transition-colors duration-200 ${
+                                selectedSection === section.title
+                                  ? "bg-indigo-100 text-indigo-800"
+                                  : "hover:bg-indigo-50 text-gray-700 hover:text-indigo-700"
+                              }`}
+                            >
+                              <span className="mr-2">
+                                {masteredSections[section.title] ? (
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <Circle className="w-4 h-4 text-gray-400" />
+                                )}
+                              </span>
+                              <span className="text-sm">{section.title}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </nav>
+            </div>
+          </aside>
+    
+          {/* Main Content Area */}
+          <main className="flex-1 p-8 overflow-y-auto">
+            <div className="mb-8 flex justify-between items-center">
+              <h1
+                className="text-3xl font-bold text-indigo-800 cursor-pointer hover:text-indigo-600 transition-colors duration-200"
+                onClick={() => setSelectedSection(null)}
+              >
+                Dashboard
+              </h1>
+              <div className="flex items-center gap-4">
+                <div className="flex rounded-lg overflow-hidden border border-indigo-200">
+                  <button
+                    onClick={() => setViewMode("chat")}
+                    className={`px-4 py-2 flex items-center ${
+                      viewMode === "chat" ? "bg-indigo-500 text-white" : "bg-white text-indigo-500 hover:bg-indigo-50"
+                    }`}
+                  >
+                    Mini Tutor
+                  </button>
+                  <button
+                    onClick={() => setViewMode("pdf")}
+                    className={`px-4 py-2 flex items-center ${
+                      viewMode === "pdf" ? "bg-indigo-500 text-white" : "bg-white text-indigo-500 hover:bg-indigo-50"
+                    }`}
+                  >
+                    Textbook PDF
+                  </button>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200 flex items-center"
+                >
+                  <LogOut className="mr-2" />
+                  Sign Out
+                </button>
+              </div>
+            </div>
+    
+            {viewMode === "pdf" ? (
+              <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-indigo-500">
+                <h2 className="text-2xl font-bold text-indigo-800 mb-4">Pre-Algebra DeMystified</h2>
+                <embed src="/mathtextbook.pdf" type="application/pdf" width="100%" height="600px" />
+              </div>
+            ) : selectedSection ? (
+              <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-indigo-500">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold text-indigo-800">Interactive AI Tutor for {selectedSection}</h2>
+                  <button
+                    className="px-4 py-2 bg-yellow-500 text-white rounded-lg flex items-center"
+                    onClick={() => setShowPopup(true)}
+                  >
+                    💡 Mastered this unit?
+                  </button>
+                </div>
+                {(() => {
+                  const idx = sectionNames.indexOf(selectedSection)
+                  if (idx === -1) {
+                    return <div>No chat component mapped for this section yet.</div>
+                  }
+                  const ChatComponent = chatMap[idx]
+                  if (!ChatComponent) {
+                    return (
+                      <p className="text-indigo-600">The interactive AI tutor for this section will be integrated here.</p>
+                    )
+                  }
+                  return <ChatComponent userId={user.id}/>
+                })()}
+              </div>
+            ) : (
+              // Welcome Screen
+              <div className="bg-white shadow-lg rounded-lg p-6 border-l-4 border-indigo-500">
+                <h1 className="text-3xl font-bold text-indigo-800 mb-4">
+                  Welcome to Your Interactive Pre-Algebra AI Textbook
+                </h1>
+                <p className="text-indigo-600 mb-4">
+                  This interactive textbook is based on "Pre-Algebra DeMYSTiFieD" by Allan Bluman (McGraw-Hill). We credit
+                  the author for the original material, which we've used to train an AI that provides a dynamic learning
+                  experience.
+                </p>
+                <h2 className="text-xl font-semibold text-indigo-700 mb-2">How It Works</h2>
+                <p className="text-indigo-600 mb-4">
+                  Each topic is split into smaller sections. You'll have a specialized 'mini tutor' for each section. Simply
+                  click a subsection on the left to start a tutoring session.
+                </p>
+                <h2 className="text-xl font-semibold text-indigo-700 mb-2">How to Use</h2>
+                <ul className="list-disc list-inside text-indigo-600 mb-4">
+                  <li>Select a section from the left to launch its mini tutor.</li>
+                  <li>The tutor will teach or review the concept, ask you questions, give examples, and quiz you.</li>
+                  <li>
+                    If you get 3 questions correct in a row, the system marks that topic as 'mastered.' You can then move on
+                    to the next one (or revisit anytime).
+                  </li>
+                  <li>You can always come back to a previous section to review or practice more.</li>
+                </ul>
+                <p className="text-indigo-800 font-medium bg-indigo-100 p-4 rounded-lg">
+                  Remember, everyone can learn math with the right approach. Let's build your confidence together!
+                </p>
+              </div>
+            )}
+            {/* Disclaimer */}
+            <div className="mt-8 text-sm text-indigo-500 bg-white p-4 rounded-lg shadow">
+              <p>
+                Disclaimer: This platform is a prototype that uses content from 'Pre-Algebra DeMYSTiFieD' (McGraw-Hill) to
+                train AI tutors. We credit the author, Allan Bluman, for the original material. This project is for
+                demonstration purposes only.
+              </p>
+            </div>
+          </main>
+          {showPopup && (
+            <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Have you mastered this unit?</h2>
+                <div className="flex justify-center gap-4">
+                  <button className="px-4 py-2 bg-green-500 text-white rounded-lg" onClick={() => handleMastery(true)}>
+                    Yes
+                  </button>
+                  <button className="px-4 py-2 bg-red-500 text-white rounded-lg" onClick={() => handleMastery(false)}>
+                    No
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* show confetti if section mastered */}
+          {showConfetti && (
+            <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} numberOfPieces={200} />
+          )}
+        </div>
+      )
+    }
