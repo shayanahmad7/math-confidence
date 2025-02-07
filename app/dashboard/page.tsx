@@ -11,6 +11,13 @@ import Confetti from 'react-confetti'
 
 import Chat1 from "@/components/Chat1"
 import Chat2 from "@/components/Chat2"
+import Chat3 from "@/components/Chat8"
+import Chat4 from "@/components/Chat8"
+import Chat5 from "@/components/Chat8"
+import Chat6 from "@/components/Chat8"
+import Chat7 from "@/components/Chat8"
+import Chat8 from "@/components/Chat8"
+
 
 const chapters = [
   {
@@ -165,12 +172,12 @@ const chapters = [
 const chatMap = [
     Chat1,  // index 0 => "Naming Numbers"
     Chat2,  // index 1 => "Rounding Numbers"
-    // Chat3,  // index 2 => "Addition of Whole Numbers"
-    // Chat4,  // index 3 => "Subtraction of Whole Numbers"
-    // Chat5,  // index 4 => "Multiplication of Whole Numbers"
-    // Chat6,  // index 5 => "Division of Whole Numbers"
-    // Chat7,  // index 6 => "Word Problems"
-    // Chat8,  // index 7 => "Quiz 1"
+    Chat3,  // index 2 => "Addition of Whole Numbers"
+    Chat4,  // index 3 => "Subtraction of Whole Numbers"
+    Chat5,  // index 4 => "Multiplication of Whole Numbers"
+    Chat6,  // index 5 => "Division of Whole Numbers"
+    Chat7,  // index 6 => "Word Problems"
+    Chat8,  // index 7 => "Quiz 1"
     // Chat9,  // index 8 => "Basic Concepts"
     // Chat10, // index 9 => "Addition of Integers"
     // Chat11, // index 10 => "Subtraction of Integers"
