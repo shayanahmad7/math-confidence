@@ -74,7 +74,7 @@ const Chat2: React.FC<ChatProps> = ({ userId }) => {
                {
                  id: 'initial-1',
                  content:
-                   "Welcome to the section Quiz 1: Whole Numbers.\nWe will solve every problem step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS!",
+                   "Welcome to the second section on Whole Numbers: Rounding Numbers.\nWe will start from the basics till you master it. Ask me any questions along the way, and remember, YOU'VE GOT THIS!",
                  role: 'assistant',
                },
                {
@@ -84,8 +84,9 @@ const Chat2: React.FC<ChatProps> = ({ userId }) => {
                },
              ]
              setFetchedMessages(newMessages); // Store fetched messages           
-             setMessages([...initialMessages, ...newMessages]); // Render messages immediately           
+                        
             setIsLoadingHistory(false); // Stop loading state
+            setMessages([...initialMessages, ...newMessages]); // Render messages immediately
           } catch (e) {
             // Wait until the full JSON object is received
           }

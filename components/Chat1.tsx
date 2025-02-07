@@ -42,6 +42,7 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
 
   const [fetchedMessages, setFetchedMessages] = useState<Message[]>([]); // Store fetched messages
   const [isLoadingHistory, setIsLoadingHistory] = useState(true); // Track loading state
+  const [historyLoaded, setHistoryLoaded] = useState(false); // New state to track if history loading is finished
 
   useEffect(() => {
     const fetchChatHistory = async () => {
@@ -55,51 +56,63 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
 
         const decoder = new TextDecoder("utf-8");
         let partialData = "";
+        let newMessages: Message[] = []; // Store messages temporarily before setting state
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          
+
           partialData += decoder.decode(value, { stream: true });
 
           try {
+            // Parse the JSON data from the API response
             const parsedData = JSON.parse(partialData);
-            const newMessages = parsedData.messages.map((msg: any, index: number) => ({
+            newMessages = parsedData.messages.map((msg: any, index: number) => ({
               id: `msg-${index}`,
               role: msg.role,
               content: msg.content,
             }));
 
-            
-
-            const initialMessages: Message[] = [
-              {
-                id: 'initial-1',
-                content:
-                  "Welcome to the section Quiz 1: Whole Numbers.\nWe will solve every problem step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS!",
-                role: 'assistant',
-              },
-              {
-                id: 'initial-2',
-                content: 'Would you like to start?',
-                role: 'assistant',
-              },
-            ]
-            setFetchedMessages(newMessages); // Store fetched messages           
-            setMessages([...initialMessages, ...newMessages]); // Render messages immediately
-            setIsLoadingHistory(false); // Stop loading state
+            setFetchedMessages(newMessages); // Store fetched messages in state
           } catch (e) {
             // Wait until the full JSON object is received
           }
         }
+
+        setIsLoadingHistory(false); // Mark loading as complete
+        setHistoryLoaded(true);
       } catch (error) {
         console.error("Error fetching chat history:", error);
         setIsLoadingHistory(false); // Stop loading even if there's an error
+        setHistoryLoaded(true);
       }
     };
 
     fetchChatHistory();
-  }, [userId]); // Runs once per userId change
+  }, [userId]); // Runs once when userId changes
+
+  
+  useEffect(() => {
+    if (historyLoaded) {
+      const initialMessages: Message[] = [
+        {
+          id: "initial-1",
+          content:
+            "Welcome to the first section on Whole Numbers: Naming Numbers.\nWe will start from the basics till you master it. Ask me any questions along the way, and remember, YOU'VE GOT THIS!",
+          role: "assistant",
+        },
+        {
+          id: "initial-2",
+          content: "Would you like to start?",
+          role: "assistant",
+        },
+      ];
+  
+      // ✅ Ensure messages update only after the first effect is fully done
+      setMessages([...initialMessages, ...fetchedMessages]);
+    }
+  }, [historyLoaded]); // Runs ONLY when history is fully loaded
+
 
   // Append AI messages while keeping fetched messages
   useEffect(() => {
@@ -107,7 +120,7 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
       {
         id: 'initial-1',
         content:
-          "Welcome to the section Quiz 1: Whole Numbers.\nWe will solve every problem step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS!",
+          "Welcome to the first section on Whole Numbers: Naming Numbers.\nWe will start from the basics till you master it. Ask me any questions along the way, and remember, YOU'VE GOT THIS!",
         role: 'assistant',
       },
       {

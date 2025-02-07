@@ -83,8 +83,9 @@ const Chat8: React.FC<ChatProps> = ({ userId }) => {
               },
             ]
             setFetchedMessages(newMessages); // Store fetched messages
-            setMessages([...initialMessages, ...newMessages]); // Render messages immediately
+            
             setIsLoadingHistory(false); // Stop loading state
+            setMessages([...initialMessages, ...newMessages]); // Render messages immediately
 
           } catch (e) {
             // Wait until the full JSON object is received
