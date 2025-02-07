@@ -56,6 +56,23 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Demo Video Section */}
+        <section className="py-16 bg-gray-100">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-8">See MathConfidence in Action</h2>
+            <div className="max-w-3xl mx-auto">
+              <div style={{ position: "relative", paddingBottom: "66.66666666666666%", height: 0 }}>
+                <iframe
+                  src="https://www.loom.com/embed/d5e2b2998e8f4928a05ac7fa92fd2da2?sid=98f5b9c4-9106-4257-befb-489611c3e848"
+                  frameBorder="0"
+                  allowFullScreen
+                  style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+                ></iframe>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Problem Statement + Statistics */}
         <section className="bg-gray-50 py-16">
           <div className="container mx-auto px-4">
@@ -157,12 +174,18 @@ export default function LandingPage() {
         {/* CTA Section */}
         <section className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-16">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-4">Ready to Defeat Math Anxiety?</h2>
+            <h2 className="text-3xl font-bold mb-4">Ready to Boost Your Math Confidence?</h2>
             <p className="mb-8">
-              Sign up to stay informed about our beta launch and be the first to try the interactive AI textbook.
+              Start your journey today and join our newsletter to stay informed about the latest features and updates.
             </p>
-            <form className="max-w-md mx-auto">
-              <div className="flex">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+              <button
+                onClick={() => setShowSignUp(true)}
+                className="bg-white text-indigo-600 font-bold py-2 px-6 rounded-full hover:bg-indigo-100 transition duration-300"
+              >
+                Get Started Now
+              </button>
+              <form className="flex w-full max-w-md">
                 <input
                   type="email"
                   placeholder="Enter your email"
@@ -173,10 +196,10 @@ export default function LandingPage() {
                   type="submit"
                   className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2 px-6 rounded-r-full focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 >
-                  Sign Up
+                  Subscribe
                 </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </section>
 
