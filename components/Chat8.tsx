@@ -382,7 +382,7 @@ const Chat8: React.FC<ChatProps> = ({ userId }) => {
             type="text"
             value={input}
             onChange={handleInputChange}
-            placeholder="Ask about Naming Numbers..."
+            placeholder="Ask about Quiz 1..."
             disabled={isStreaming}
             className="flex-1 rounded-l-full bg-transparent px-6 py-3 focus:outline-none"
           />
