@@ -11,6 +11,7 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 
 
+
 interface ChatProps {
   userId: string; // The user's unique ID
 }

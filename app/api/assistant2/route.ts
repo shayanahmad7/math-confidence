@@ -1,6 +1,5 @@
 /* eslint-disable */
 
-
 import { AssistantResponse } from 'ai';
 import OpenAI from 'openai';
 import { MongoClient, Db, Collection } from 'mongodb';
@@ -31,11 +30,11 @@ let collection: Collection<Thread>;
 // Connect to MongoDB if not already connected
 async function connectToDatabase() {
   if (!db) {
-    console.log('[DB] Connecting to MongoDB...');
+    
     await client.connect();
     db = client.db('math-confidence');
     collection = db.collection<Thread>('threads2');
-    console.log('[DB] Successfully connected to MongoDB.');
+    
   }
 }
 
@@ -61,7 +60,6 @@ async function saveMessageToDatabase(
     });
 
     if (existingMessage) {
-      console.log(`[DB] Message already exists for userId ${userId}, threadId ${threadId}: ${content}`);
       return;
     }
 
@@ -71,27 +69,27 @@ async function saveMessageToDatabase(
       timestamp: new Date(),
     };
 
-    console.log(`[DB] Saving ${role} message for userId ${userId}, threadId ${threadId}: ${content}`);
+    
     await collection!.updateOne(
       { userId, threadId },
       { $push: { messages: message } },
       { upsert: true }
     );
-    console.log('[DB] Message saved successfully.');
+    
   } catch (err) {
-    console.error('[DB] Error saving message:', err);
+    
   }
 }
 
 // GET endpoint to fetch chat history for a specific user
 export async function GET(req: Request) {
   try {
-    console.log('[API] Received GET request for chat history.');
+    
 
     // Parse query parameters
     const url = new URL(req.url);
     const userId = url.searchParams.get('userId');
-    console.log(`[API] Parsed userId from query parameters: ${userId}`);
+    
 
     if (!userId) {
       console.error('[API] Missing userId in query parameters.');
@@ -110,7 +108,7 @@ export async function GET(req: Request) {
     }
 
     // Query the database for the user's thread
-    console.log(`[DB] Fetching thread for userId: ${userId}`);
+    
     const thread = await collection.findOne({ userId });
     if (!thread) {
       console.warn(`[DB] No thread found for userId: ${userId}`);
@@ -120,11 +118,11 @@ export async function GET(req: Request) {
       });
     }
 
-    console.log(`[DB] Fetched thread for userId ${userId}:`, thread);
+    
 
     // Extract and return the messages
     const messages = thread.messages || [];
-    console.log(`[API] Returning ${messages.length} messages for userId: ${userId}`);
+    
     return new Response(JSON.stringify({ messages }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -144,9 +142,9 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    console.log('[API] Received request.');
+    
     const input: { userId: string; threadId: string | null; message: string } = await req.json();
-    console.log('[API] Parsed input:', input);
+    
 
     let threadId = input.threadId;
 
@@ -158,11 +156,11 @@ export async function POST(req: Request) {
       const existingThread = await collection?.findOne({ userId: input.userId });
       if (existingThread) {
         threadId = existingThread.threadId;
-        console.log(`[API] Found existing threadId for userId ${input.userId}: ${threadId}`);
+        
       } else {
         // Create a new thread if none exists
         threadId = (await openai.beta.threads.create({})).id;
-        console.log(`[API] Created new threadId for userId ${input.userId}: ${threadId}`);
+        
 
         // Save the new thread in MongoDB
         await collection!.insertOne({
@@ -170,24 +168,24 @@ export async function POST(req: Request) {
           threadId,
           messages: [],
         });
-        console.log('[DB] New thread document created for userId:', input.userId);
+        
       }
     }
 
-    console.log(`[API] Using threadId: ${threadId}`);
+    
 
     try {
       // Cancel any active runs for this thread
-      console.log('[API] Cancelling active runs for threadId:', threadId);
+      
       await cancelActiveRuns(threadId);
 
       // Create the user message on the OpenAI thread
-      console.log('[API] Creating user message in OpenAI thread...');
+      
       const createdMessage = await openai.beta.threads.messages.create(threadId, {
         role: 'user',
         content: input.message,
       });
-      console.log(`[API] User message created with id: ${createdMessage.id}`);
+      
 
       // Save the user's message to MongoDB
       await saveMessageToDatabase(input.userId, threadId, 'user', input.message);
@@ -196,7 +194,7 @@ export async function POST(req: Request) {
       return AssistantResponse(
         { threadId, messageId: createdMessage.id },
         async ({ forwardStream }) => {
-          console.log('[STREAM] Starting to stream assistant response...');
+          
           const runStream = openai.beta.threads.runs.stream(threadId, {
             assistant_id: process.env.ASSISTANT2_ID ?? (() => {
               throw new Error('ASSISTANT2_ID is not set');
@@ -204,14 +202,14 @@ export async function POST(req: Request) {
           });
 
           let runResult = await forwardStream(runStream);
-          console.log('[STREAM] Initial run result:', runResult);
+          
 
           // Process any required actions (if needed) until the run completes
           while (
             runResult?.status === 'requires_action' &&
             runResult.required_action?.type === 'submit_tool_outputs'
           ) {
-            console.log('[STREAM] Run requires action, submitting tool outputs...', runResult);
+            
             runResult = await forwardStream(
               openai.beta.threads.runs.submitToolOutputsStream(
                 threadId,
@@ -219,26 +217,26 @@ export async function POST(req: Request) {
                 { tool_outputs: [] }
               )
             );
-            console.log('[STREAM] Updated run result after action:', runResult);
+            
           }
 
           // Once the run is completed, fetch the thread messages to obtain the assistant reply
           if (runResult?.status === 'completed') {
-            console.log('[STREAM] Run completed. Fetching thread messages for assistant response...');
+            
             try {
               const messagesPage = await openai.beta.threads.messages.list(threadId);
-              console.log('[STREAM] Fetched thread messages page:', messagesPage);
+              
 
               const threadMessages: any[] = messagesPage.data || [];
-              console.log('[STREAM] Thread messages array:', threadMessages);
+              
 
               const assistantMessages = threadMessages.filter((msg: any) => msg.role === 'assistant');
               if (assistantMessages.length > 0) {
                 const latestAssistantMessage = assistantMessages[0];
-                console.log('[STREAM] Saving latest assistant message:', latestAssistantMessage);
+                
 
                 const assistantContent = extractPlainText(latestAssistantMessage.content);
-                console.log('[STREAM] Extracted plain text:', assistantContent);
+                
 
                 await saveMessageToDatabase(input.userId, threadId, 'assistant', assistantContent);
               } else {
@@ -280,8 +278,8 @@ export async function POST(req: Request) {
 
 // Dummy (or existing) cancelActiveRuns implementation
 async function cancelActiveRuns(threadId: string) {
-  console.log(`[RUN] Cancelling active runs for threadId: ${threadId}`);
-  // Add your actual cancellation logic here if needed.
+  
+  // Add actual cancellation logic here if needed.
 }
 
 // Helper function to extract plain text from assistant's content
