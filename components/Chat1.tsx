@@ -98,6 +98,7 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
     setIsStreaming(status === 'in_progress');
   }, [status]);
 
+  
    // ------------------------------
   // Text-to-speech (TTS) function using OpenAI's API
   // ------------------------------
@@ -229,7 +230,7 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
                 `}
               >
                 {renderMessage(m.content)}
-                <div>
+                
                 {m.role === 'assistant' && (
                   <button
                     onClick={() => speakMessage(m.content, m.id)}
@@ -243,7 +244,7 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
                     />
                   </button>
                 )}
-                </div>
+                
               </div>
             </div>
           </div>

@@ -1,13 +1,15 @@
 /* eslint-disable */
 
+
 'use client';
 import React, { useRef, useEffect, useState } from 'react';
 import { Message, useAssistant } from 'ai/react';
-import { Send, Loader2, User, Bot, StopCircle } from 'lucide-react';
+import { Send, Loader2, User, Bot, StopCircle, Mic, MicOff, Volume2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+
 
 
 interface ChatProps {
@@ -18,11 +20,20 @@ const Chat2: React.FC<ChatProps> = ({ userId }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isRecording, setIsRecording] = useState(false) // state for STT recording
+
+  // States for text-to-speech (TTS)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [currentlySpeakingId, setCurrentlySpeakingId] = useState<string | null>(null)
+  
+  // A ref to hold the currently playing audio so we can stop it if needed.
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+
 
   // Use the useAssistant hook to interact with the OpenAI Assistants API
   const { status, messages: aiMessages, input, submitMessage, handleInputChange, stop } = useAssistant({
     api: '/api/assistant2',
-    body: { assistantId: process.env.ASSISTANT2_ID, userId }, // Pass only userId to the backend
+    body: { assistantId: process.env.ASSISTANT1_ID, userId }, // Pass only userId to the backend
   });
 
   const [fetchedMessages, setFetchedMessages] = useState<Message[]>([]); // Store fetched messages
@@ -86,6 +97,63 @@ const Chat2: React.FC<ChatProps> = ({ userId }) => {
   useEffect(() => {
     setIsStreaming(status === 'in_progress');
   }, [status]);
+
+  
+   // ------------------------------
+  // Text-to-speech (TTS) function using OpenAI's API
+  // ------------------------------
+  const speakMessage = async (text: string, messageId: string) => {
+    // Clean the text so that only actual words (letters and numbers) are spoken.
+    const cleanedText = text.match(/\b\w+\b/g)?.join(' ') || text
+
+    // If there is already audio playing, stop it.
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current.currentTime = 0
+      if (currentlySpeakingId === messageId) {
+        setCurrentlySpeakingId(null)
+        setIsSpeaking(false)
+        return
+      }
+    }
+
+    try {
+      // Request audio from your server, which communicates with OpenAI's TTS API
+      const response = await fetch('/api/openai-tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'tts-1',
+          voice: 'alloy',
+          input: cleanedText,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('TTS API error')
+      }
+
+      // Stream the audio response
+      const audioBlob = await response.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+
+      const audio = new Audio(audioUrl)
+      currentAudioRef.current = audio
+      setIsSpeaking(true)
+      setCurrentlySpeakingId(messageId)
+
+      audio.onended = () => {
+        setIsSpeaking(false)
+        setCurrentlySpeakingId(null)
+        currentAudioRef.current = null
+        URL.revokeObjectURL(audioUrl)
+      }
+
+      audio.play()
+    } catch (error) {
+      console.error('TTS error: ', error)
+    }
+  }
 
   // Render Markdown content for messages
   const renderMessage = (content: string) => {
@@ -162,6 +230,21 @@ const Chat2: React.FC<ChatProps> = ({ userId }) => {
                 `}
               >
                 {renderMessage(m.content)}
+                
+                {m.role === 'assistant' && (
+                  <button
+                    onClick={() => speakMessage(m.content, m.id)}
+                    title="Read aloud"
+                    className="ml-2 hover:text-gray-900 focus:outline-none"
+                  >
+                    <Volume2
+                      className={`h-5 w-5 ${
+                        currentlySpeakingId === m.id ? 'text-blue-500' : 'text-gray-600'
+                      }`}
+                    />
+                  </button>
+                )}
+                
               </div>
             </div>
           </div>
