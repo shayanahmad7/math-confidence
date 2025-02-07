@@ -1,5 +1,9 @@
 /* eslint-disable */
 
+interface SpeechRecognitionEvent extends Event {
+  readonly resultIndex: number;
+  readonly results: SpeechRecognitionResultList;
+}
 
 'use client';
 import React, { useRef, useEffect, useState } from 'react';
@@ -20,7 +24,7 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [isRecording, setIsRecording] = useState(false) // state for STT recording
+  
 
   // States for text-to-speech (TTS)
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -28,7 +32,7 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
   
   // A ref to hold the currently playing audio so we can stop it if needed.
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
-
+  
 
   // Use the useAssistant hook to interact with the OpenAI Assistants API
   const { status, messages: aiMessages, input, submitMessage, handleInputChange, stop } = useAssistant({
@@ -66,8 +70,23 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
               content: msg.content,
             }));
 
-            setFetchedMessages(newMessages); // Store fetched messages
-            setMessages(newMessages); // Render messages immediately
+            
+
+            const initialMessages: Message[] = [
+              {
+                id: 'initial-1',
+                content:
+                  "Welcome to the section Quiz 1: Whole Numbers.\nWe will solve every problem step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS!",
+                role: 'assistant',
+              },
+              {
+                id: 'initial-2',
+                content: 'Would you like to start?',
+                role: 'assistant',
+              },
+            ]
+            setFetchedMessages(newMessages); // Store fetched messages           
+            setMessages([...initialMessages, ...newMessages]); // Render messages immediately
             setIsLoadingHistory(false); // Stop loading state
           } catch (e) {
             // Wait until the full JSON object is received
@@ -84,7 +103,20 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
 
   // Append AI messages while keeping fetched messages
   useEffect(() => {
-    setMessages([...fetchedMessages, ...aiMessages]); // Ensures messages persist
+    const initialMessages: Message[] = [
+      {
+        id: 'initial-1',
+        content:
+          "Welcome to the section Quiz 1: Whole Numbers.\nWe will solve every problem step by step. Ask me any questions along the way, and remember, YOU'VE GOT THIS!",
+        role: 'assistant',
+      },
+      {
+        id: 'initial-2',
+        content: 'Would you like to start?',
+        role: 'assistant',
+      },
+    ]
+    setMessages([...initialMessages,...fetchedMessages, ...aiMessages]); // Ensures messages persist
   }, [aiMessages]); // Runs whenever AI messages change
 
 
@@ -98,7 +130,75 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
     setIsStreaming(status === 'in_progress');
   }, [status]);
 
-  
+  const [isRecording, setIsRecording] = useState(false) // STT recording flag
+
+  // Ref for speech recognition (STT)
+  const recognitionRef = useRef<any>(null)
+  // Ref to accumulate final (confirmed) transcript text.
+  const finalTranscriptRef = useRef<string>("");
+
+  // Initialize Speech Recognition (STT) if supported
+  useEffect(() => {
+    const SpeechRecognitionConstructor =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (SpeechRecognitionConstructor) {
+      const recognition = new SpeechRecognitionConstructor()
+      // Record continuously until you manually stop.
+      recognition.continuous = true
+      // Enable interim results so that words are output live.
+      recognition.interimResults = true
+      recognition.lang = 'en-US'
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        let interimTranscript = ""
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          // If result is final, append it to our final transcript.
+          if (event.results[i].isFinal) {
+            finalTranscriptRef.current += event.results[i][0].transcript + " "
+          } else {
+            interimTranscript += event.results[i][0].transcript
+          }
+        }
+        // Combine the final transcript (accumulated so far) with the interim transcript.
+        const currentTranscript = finalTranscriptRef.current + interimTranscript
+        // Update the input field with the live transcript.
+        handleInputChange({
+          target: { value: currentTranscript },
+        } as React.ChangeEvent<HTMLInputElement>)
+      }
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event)
+        setIsRecording(false)
+      }
+      recognition.onend = () => {
+        setIsRecording(false)
+      }
+      recognitionRef.current = recognition
+    }
+  }, [handleInputChange])
+
+  // ------------------------------
+  // Speech-to-text (STT) toggle handler
+  // ------------------------------
+  const handleRecording = () => {
+    if (!recognitionRef.current) {
+      console.warn('Speech recognition not supported in this browser.')
+      return
+    }
+    if (isRecording) {
+      recognitionRef.current.start()
+      // recognitionRef.current.stop()
+      setIsRecording(false)
+    } else {
+      try {
+        // recognitionRef.current.start()
+        recognitionRef.current.stop()
+        setIsRecording(true)
+      } catch (error) {
+        console.error('Error starting speech recognition:', error)
+      }
+    }
+  }
+
    // ------------------------------
   // Text-to-speech (TTS) function using OpenAI's API
   // ------------------------------
@@ -263,6 +363,23 @@ const Chat1: React.FC<ChatProps> = ({ userId }) => {
       {/* Input Form */}
       <form onSubmit={handleSubmit} className="border-t border-gray-200 bg-white p-4">
         <div className="flex rounded-full bg-gray-100 shadow-inner">
+            {/* Mic button on the left with glowing effect when recording */}
+            <button
+            type="button"
+            onClick={handleRecording}
+            title={isRecording ? 'Stop recording' : 'Record your message'}
+            className={`p-2 rounded-full focus:outline-none ${
+              isRecording
+                ? 'animate-pulse ring-4 ring-blue-500 bg-gray-200'
+                : 'bg-gray-200 hover:bg-gray-300'
+            }`}
+          >
+            {isRecording ? (
+              <Mic className="h-5 w-5" />
+            ) : (
+              <MicOff className="h-5 w-5" />
+            )}
+          </button>
           <input
             type="text"
             value={input}
