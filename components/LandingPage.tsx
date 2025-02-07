@@ -63,8 +63,8 @@ export default function LandingPage() {
             <div className="max-w-3xl mx-auto">
               <div style={{ position: "relative", paddingBottom: "66.66666666666666%", height: 0 }}>
                 <iframe
-                  src="https://www.loom.com/embed/d5e2b2998e8f4928a05ac7fa92fd2da2?sid=98f5b9c4-9106-4257-befb-489611c3e848"
-                  frameBorder="0"
+                  src="https://www.loom.com/embed/c0632b215df245fb88117c16df780df1?sid=e7989e05-540b-4824-95e0-dbdadc54f2c7"
+                  
                   allowFullScreen
                   style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
                 ></iframe>
