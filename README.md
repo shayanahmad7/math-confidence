@@ -133,3 +133,11 @@ Follow us on social media to stay updated with the latest features and announcem
 - LinkedIn: [Interactive Pre-Algebra AI Textbook](https://linkedin.com/company/interactive-prealgebra)
 
 Thank you for being a part of our journey to make math learning more accessible and enjoyable for everyone!
+
+## Authors
+- Shayan Ahmad
+- Ramsha Bilal
+- Izah Sohail
+- Aysa Moma
+- Samroz Ahmad Shoaib
+
