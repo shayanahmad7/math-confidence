@@ -1,8 +1,11 @@
 # Interactive Pre-Algebra AI Textbook 📚🤖
 
-Prototype platform that transforms a traditional textbook into an **interactive, AI-driven learning experience**. Learners chat with “mini tutors” dedicated to each section of the book, receiving step-by-step instruction, questions, and mastery feedback.
+Prototype platform that transforms a static textbook into an **interactive, AI-driven learning experience**.
+Learners chat with small "mini-tutors" dedicated to each section, receiving step-by-step instruction and instant Q&A – no more passive reading.
 
-> 🏆 Originally built as a **finalist project** in the NYU Abu Dhabi **Slush'D 2025 – AI for Good Hackathon** (powered by Nokia) and now extended with additional accessibility and persistence features.
+> 🏆 Originally built as a **finalist project** in the NYU Abu Dhabi **Slush'D 2025 – AI for Good Hackathon** (powered by Nokia) and now extended with additional accessibility & persistence features.
+>
+> 🌐 Live demo: **https://math-confidence.com**
 
 ---
 
@@ -15,9 +18,19 @@ Prototype platform that transforms a traditional textbook into an **interactive,
 | Real-time Streaming   | Messages stream token-by-token for an authentic chat feel using `ai/react` hooks.                                                  |
 | Persistent History    | Conversations are saved to MongoDB per user & assistant; return any time and pick up where you left off.                           |
 | Speech ▲▼ Text        | Whisper STT for voice input and OpenAI TTS for high-quality read-aloud responses.                                                  |
-| Image Recognition     | Learners can upload images (e.g. a handwritten problem); the assistant receives the image URL.                                     |
-| Mastery Tracking      | Front-end logic tracks when a learner answers three questions correctly in a row and marks the section as mastered.                |
+
 | Growth-Mindset Design | Encouraging language, confetti on mastery, and emphasis on learning through mistakes.                                              |
+
+---
+
+## Adapt It To Any Book
+
+1. Create a PDF of your target textbook and drop it in `/public`.
+2. Create an OpenAI Assistant for **each chapter** (or section) and note the assistant IDs.
+3. Update the sidebar arrays in `app/dashboard/page.tsx` with your chapter & section titles.
+4. Add the assistant ids to `.env.local` as `CHAPTER_<n>_ASSISTANT_ID`.
+
+No additional code changes are needed – the dynamic API route handles the rest.
 
 ---
 
@@ -46,8 +59,8 @@ Supabase ----┴→ Storage (images)    └─ Threads & message history
    ```bash
    git clone https://github.com/shayanahmad7/math-confidence.git
    cd math-confidence
-   npm install
-   ```
+npm install
+```
 
 2. **Environment Variables** (`.env.local` recommended)
 
@@ -71,7 +84,7 @@ Supabase ----┴→ Storage (images)    └─ Threads & message history
 
 3. **Run Dev Server**
    ```bash
-   npm run dev
+npm run dev
    # open http://localhost:3000
    ```
 
@@ -81,8 +94,7 @@ Supabase ----┴→ Storage (images)    └─ Threads & message history
 
 - Select a chapter + section from the left sidebar; a mini tutor launches instantly.
 - Use voice input by toggling the microphone (Chrome / Edge have native recognition; other browsers fall back to Whisper).
-- Click the paper-clip icon to upload an image.
-- When you reach mastery the section gets a ✅ and confetti appears!
+
 
 ---
 
