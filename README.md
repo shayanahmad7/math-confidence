@@ -1,128 +1,190 @@
-# Interactive Pre-Algebra AI Textbook 📚🤖
+# Interactive Pre-Algebra AI Textbook 📚✨
 
-Prototype platform that transforms a static textbook into an **interactive, AI-driven learning experience**.
-Learners chat with small "mini-tutors" dedicated to each section, receiving step-by-step instruction and instant Q&A – no more passive reading.
+Transform any textbook into an **interactive, AI-powered learning experience**. Chat with specialized "mini-tutors" for each section, getting personalized instruction and instant Q&A support.
 
-> 🏆 Originally built as a **finalist project** in the NYU Abu Dhabi **Slush'D 2025 – AI for Good Hackathon** (powered by Nokia) and now extended with additional accessibility & persistence features.
->
-> 🌐 Live demo: **https://math-confidence.com**
+> 🏆 **Finalist project** at NYU Abu Dhabi **Slush'D 2025 – AI for Good Hackathon** (powered by Nokia)  
+> 🌐 **Live Demo:** [math-confidence.com](https://math-confidence.com)
 
 ---
 
-## Key Features
+## 🎯 Problem & Solution
 
-| Capability            | Details                                                                                                                            |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Per-Section Tutors    | Each chapter/section is backed by its own OpenAI Assistant, guaranteeing focused answers and avoiding topic drift.                 |
-| Auto-prompting        | The app automatically sends a hidden trigger (section number) or greeting to start the conversation so learners can dive right in. |
-| Real-time Streaming   | Messages stream token-by-token for an authentic chat feel using `ai/react` hooks.                                                  |
-| Persistent History    | Conversations are saved to MongoDB per user & assistant; return any time and pick up where you left off.                           |
-| Speech ▲▼ Text        | Whisper STT for voice input and OpenAI TTS for high-quality read-aloud responses.                                                  |
+**The Problem:** Traditional textbooks are passive. Students read alone, get stuck, and often lose confidence—especially in math. Many believe they "just don't have the math gene."
 
-| Growth-Mindset Design | Encouraging language, confetti on mastery, and emphasis on learning through mistakes.                                              |
+**Our Solution:** We've transformed "Pre-Algebra DeMYSTiFieD" by Allan Bluman into an interactive experience where learners chat with AI tutors dedicated to each chapter section. No more silent struggling—get instant help, explanations, and encouragement.
 
 ---
 
-## Adapt It To Any Book
+## ✨ Key Features
 
-1. Create a PDF of your target textbook and drop it in `/public`.
-2. Create an OpenAI Assistant for **each chapter** (or section) and note the assistant IDs.
-3. Update the sidebar arrays in `app/dashboard/page.tsx` with your chapter & section titles.
-4. Add the assistant ids to `.env.local` as `CHAPTER_<n>_ASSISTANT_ID`.
-
-No additional code changes are needed – the dynamic API route handles the rest.
-
----
-
-## Architecture Overview
-
-```
-Next.js 15  ─┐                MongoDB (Atlas)
-React 19     │  API routes          │
-Tailwind     │  OpenAI Assistants   │
-Supabase ----┴→ Storage (images)    └─ Threads & message history
-```
-
-- **Frontend** – Next 13/React 19, single reusable `Chat` component, Tailwind CSS UI.
-- **Backend** – Next.js Route Handlers.
-  - `/api/assistant/[id]` – dynamic endpoint that proxies to the correct Assistant id, handles thread creation, streams responses, and saves both user & assistant messages.
-  - `/api/speech-to-text` – Whisper STT.
-  - `/api/openai-tts` – OpenAI TTS.
-  - `/api/upload` – uploads images to Supabase Storage and returns a public URL.
+| 🎯 Feature | 📋 Description |
+|------------|----------------|
+| **🤖 Per-Section Tutors** | Each chapter/section has its own OpenAI Assistant, ensuring focused, relevant responses |
+| **⚡ Auto-Start Conversations** | Tutors automatically greet learners or send section-specific prompts to begin |
+| **💬 Real-time Streaming** | Messages appear token-by-token for natural chat experience |
+| **💾 Persistent History** | All conversations saved to MongoDB—pick up exactly where you left off |
+| **🎙️ Voice Integration** | Speak your questions (Whisper STT) and hear responses read aloud (OpenAI TTS) |
+| **💪 Growth Mindset** | Encouraging language throughout—mistakes are learning opportunities! |
 
 ---
 
-## Getting Started
+## 🚀 Quick Start (For Learners)
 
-1. **Clone & Install**
+1. **Visit the live demo:** [math-confidence.com](https://math-confidence.com)
+2. **Sign up** with your email
+3. **Choose a chapter** from the sidebar (e.g., "Chapter 1: Whole Numbers")
+4. **Select a section** (e.g., "Naming Numbers")
+5. **Start chatting!** The AI tutor will automatically greet you and begin the lesson
 
+### 💡 Pro Tips
+- 🎤 Click the microphone to ask questions with your voice
+- 🔊 Click the speaker icon on AI responses to hear them read aloud
+- 📚 Your progress is automatically saved—come back anytime!
+
+---
+
+## 🛠️ Setup for Developers
+
+Want to adapt this for your own textbook? Here's how:
+
+### Prerequisites
+- Node.js 18+
+- OpenAI API account
+- MongoDB Atlas account
+- Supabase account (for auth & file storage)
+
+### Installation
+
+1. **Clone the repository**
    ```bash
    git clone https://github.com/shayanahmad7/math-confidence.git
    cd math-confidence
-npm install
+   npm install
+   ```
+
+2. **Environment Setup**
+   
+   Create `.env.local` with:
+   ```env
+   # 🔐 Supabase Configuration
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   
+   # 🤖 OpenAI Configuration
+   OPENAI_API_KEY=sk-your_openai_api_key
+   
+   # 📊 MongoDB Configuration
+   MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/
+   
+   # 🎯 Assistant IDs (one per chapter)
+   CHAPTER_1_ASSISTANT_ID=asst_your_chapter_1_assistant_id
+   CHAPTER_2_ASSISTANT_ID=asst_your_chapter_2_assistant_id
+   # ... up to CHAPTER_14_ASSISTANT_ID
+   ```
+
+3. **Run Development Server**
+   ```bash
+   npm run dev
+   ```
+   Visit `http://localhost:3000` 🎉
+
+---
+
+## 📖 Customizing for Your Textbook
+
+### Step 1: Prepare Your Content
+1. **Add your textbook PDF** to `/public/` folder
+2. **Update the PDF embed** in `app/dashboard/page.tsx` (line ~474)
+
+### Step 2: Create OpenAI Assistants
+1. Go to [OpenAI Assistants Playground](https://platform.openai.com/assistants)
+2. **Create one assistant per chapter** with instructions like:
+   ```
+   You are a tutor for Chapter 1: Introduction to Algebra.
+   Help students understand basic algebraic concepts.
+   Be encouraging and explain step-by-step.
+   ```
+3. **Note each Assistant ID** (starts with `asst_`)
+
+### Step 3: Update Code Structure
+1. **Modify chapters array** in `app/dashboard/page.tsx` with your book's structure
+2. **Update environment variables** with your assistant IDs
+3. **Customize welcome text** and book title throughout the app
+
+That's it! The dynamic routing handles everything else automatically. 🚀
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph TB
+    A[Next.js Frontend] --> B[Dynamic API Routes]
+    B --> C[OpenAI Assistants]
+    B --> D[MongoDB Storage]
+    A --> E[Supabase Auth]
+    F[User] --> A
+    G[Speech APIs] --> A
 ```
 
-2. **Environment Variables** (`.env.local` recommended)
-
-   ```env
-   # Supabase (public bucket for image uploads)
-   NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon_key>
-
-   # OpenAI
-   OPENAI_API_KEY=sk-...
-
-   # MongoDB (Atlas URI)
-   MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/?retryWrites=true&w=majority
-
-   # Assistant ids – one per chapter (1-14)
-   CHAPTER_1_ASSISTANT_ID=asst_...
-   CHAPTER_2_ASSISTANT_ID=asst_...
-   ...
-   CHAPTER_14_ASSISTANT_ID=asst_...
-   ```
-
-3. **Run Dev Server**
-   ```bash
-npm run dev
-   # open http://localhost:3000
-   ```
+- **Frontend:** Next.js 15 + React 19 + Tailwind CSS
+- **Backend:** Next.js API Routes + OpenAI Assistants API
+- **Database:** MongoDB Atlas (conversation history)
+- **Auth & Storage:** Supabase
+- **AI:** OpenAI GPT-4, Whisper (STT), TTS
 
 ---
 
-## Usage Tips
+## 🤝 Contributing
 
-- Select a chapter + section from the left sidebar; a mini tutor launches instantly.
-- Use voice input by toggling the microphone (Chrome / Edge have native recognition; other browsers fall back to Whisper).
-
-
----
-
-## Roadmap
-
-- Autorouter for any uploaded textbook (PDF to section mapping).
-- Analytics dashboard for educators.
-- Offline / low-bandwidth TTS cache.
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** your changes: `git commit -m 'Add amazing feature'`
+4. **Push** to the branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
 
 ---
 
-## License
+## 🗺️ Roadmap
 
-MIT © 2025 – Shayan Ahmad & team
-
-## Authors
-
-- Shayan Ahmad
-- Ramsha Bilal
-- Izah Sohail
-- Aysa Moma
-- Samroz Ahmad Shoaib
+- 📚 **Multi-book support** with automatic PDF parsing
+- 📊 **Analytics dashboard** for educators
+- 🎯 **Progress tracking** and achievement system
+- 🌍 **Multi-language support**
+- 📱 **Mobile app** for iOS and Android
 
 ---
 
-## Acknowledgements
+## 👥 Team
 
-- OpenAI – Assistants, Whisper, TTS.
-- MongoDB – flexible document storage.
-- Supabase – simple image hosting.
-- NYUAD Slush'D 2025 & Nokia for the hackathon platform.
+- **Shayan Ahmad** - Lead Developer
+- **Ramsha Bilal** - AI/ML Engineer  
+- **Izah Sohail** - Frontend Developer
+- **Aysa Moma** - UX Designer
+- **Samroz Ahmad Shoaib** - Backend Developer
+
+---
+
+## 🙏 Acknowledgements
+
+- **OpenAI** - Assistants API, Whisper, and TTS capabilities
+- **MongoDB** - Flexible document storage solution
+- **Supabase** - Authentication and file storage
+- **NYUAD Slush'D 2025 & Nokia** - Hackathon platform and support
+- **Allan Bluman** - Original "Pre-Algebra DeMYSTiFieD" textbook author
+
+---
+
+## 📄 License
+
+MIT © 2025 - See [LICENSE](LICENSE) file for details
+
+---
+
+<div align="center">
+
+**Made with ❤️ by the Math Confidence Team**
+
+[🌐 Live Demo](https://math-confidence.com) • [📧 Contact](mailto:support@math-confidence.com) • [🐛 Report Bug](https://github.com/shayanahmad7/math-confidence/issues)
+
+</div>
