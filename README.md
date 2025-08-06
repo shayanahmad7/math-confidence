@@ -1,143 +1,114 @@
-# Interactive Pre-Algebra AI Textbook ✨
+# Interactive Pre-Algebra AI Textbook 📚🤖
 
-Welcome to our Interactive Pre-Algebra AI Textbook project! This platform uses an AI tutor to guide learners step by step through pre-algebra topics—automatically checking for mastery and encouraging a growth mindset along the way.
+Prototype platform that transforms a traditional textbook into an **interactive, AI-driven learning experience**.  Learners chat with “mini tutors” dedicated to each section of the book, receiving step-by-step instruction, questions, and mastery feedback.
 
-## Overview 🏆
+> 🏆 Originally built as a **finalist project** in the NYU Abu Dhabi **Slush'D 2025 – AI for Good Hackathon** (powered by Nokia) and now extended with additional accessibility and persistence features.
 
-### Problem Statement
+---
 
-Many students (and adults!) struggle with math confidence. They believe they just “don’t have the math gene.” Our research shows that personalized, step-by-step practice and positive reinforcement can dramatically improve outcomes. But not everyone has access to one-on-one tutoring.
+## Key Features
 
-### Our Solution
+| Capability | Details |
+|------------|---------|
+| Per-Section Tutors | Each chapter/section is backed by its own OpenAI Assistant, guaranteeing focused answers and avoiding topic drift. |
+| Auto-prompting | The app automatically sends a hidden trigger (section number) or greeting to start the conversation so learners can dive right in. |
+| Real-time Streaming | Messages stream token-by-token for an authentic chat feel using `ai/react` hooks. |
+| Persistent History | Conversations are saved to MongoDB per user & assistant; return any time and pick up where you left off. |
+| Speech ▲▼ Text | Whisper STT for voice input and OpenAI TTS for high-quality read-aloud responses. |
+| Image Recognition | Learners can upload images (e.g. a handwritten problem); the assistant receives the image URL. |
+| Mastery Tracking | Front-end logic tracks when a learner answers three questions correctly in a row and marks the section as mastered. |
+| Growth-Mindset Design | Encouraging language, confetti on mastery, and emphasis on learning through mistakes. |
 
-We built an AI-powered interactive textbook for Pre-Algebra, providing mini tutors for each topic. This system:
+---
 
-- Breaks the content into small, digestible sections (e.g. “Naming Numbers,” “Rounding Whole Numbers,” etc.).
-- Walks the learner through each step, asking questions and clarifying misunderstandings.
-- Tracks mastery by checking if the student can answer 3 questions in a row correctly.
-- Offers positive, supportive messages, emphasizing that anyone can learn math with the right approach!
+## Architecture Overview
 
-## Key Features ⚙️
-
-### AI Chat
-
-A dynamic chat interface (using OpenAI Beta Threads) that:
-
-- Automatically greets the user or sends a topic-specific prompt (e.g. “Section 1: Naming Numbers”).
-- Streams real-time answers and clarifications from the AI.
-- Saves conversation history to MongoDB so learners can pick up where they left off.
-
-### Modular Tutors
-
-Instead of one big AI model for the entire book, we can conceptually assign each chapter or section its own “mini tutor.” This ensures a focused learning experience.
-
-### Mastery Checks
-
-If the learner consistently answers questions correctly, the system marks that section as mastered and encourages them to move to the next topic.
-
-### Growth Mindset Cues
-
-Encouraging language (“You got this!”) is embedded throughout. Mistakes are treated as natural learning steps, not failures.
-
-## Architecture 🏗️
-
-### Frontend
-
-- Next.js + React + ai/react for an elegant chat UI.
-- `Chat1.tsx` automatically sends a prompt (like “1”) to start each section, then streams the AI’s replies.
-
-### Backend
-
-- `/api/assistant1/route.ts`: A Next.js route using OpenAI Beta Threads.
-- Stores messages in MongoDB (threads1 collection) for each (threadId).
-- On each user message, we:
-  - Add it to the Beta Thread.
-  - Stream the assistant’s response.
-  - Save that response in Mongo for future reference.
-
-## Installation 🛠️
-
-Clone this repo:
-
-```sh
-git clone https://github.com/YourUser/interactive-prealgebra.git
+```
+Next.js 15  ─┐                MongoDB (Atlas)
+React 19     │  API routes          │
+Tailwind     │  OpenAI Assistants   │
+Supabase ----┴→ Storage (images)    └─ Threads & message history
 ```
 
-Install dependencies:
+* **Frontend** – Next 13/React 19, single reusable `Chat` component, Tailwind CSS UI.
+* **Backend**  – Next.js Route Handlers.
+  * `/api/assistant/[id]` – dynamic endpoint that proxies to the correct Assistant id, handles thread creation, streams responses, and saves both user & assistant messages.
+  * `/api/speech-to-text` – Whisper STT.
+  * `/api/openai-tts` – OpenAI TTS.
+  * `/api/upload` – uploads images to Supabase Storage and returns a public URL.
 
-```sh
-cd interactive-prealgebra
-npm install
-```
+---
 
-Set environment variables in `.env`:
+## Getting Started
 
-```sh
-OPENAI_API_KEY=your_openai_key
-ASSISTANT1_ID=your_assistant_id
-MONGODB_URI=your_mongo_uri
-```
+1. **Clone & Install**
+   ```bash
+   git clone https://github.com/shayanahmad7/math-confidence.git
+   cd math-confidence
+   npm install
+   ```
 
-Run the dev server:
+2. **Environment Variables**  (`.env.local` recommended)
+   ```env
+   # Supabase (public bucket for image uploads)
+   NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon_key>
 
-```sh
-npm run dev
-```
+   # OpenAI
+   OPENAI_API_KEY=sk-...
 
-Navigate to `http://localhost:3000` and chat away!
+   # MongoDB (Atlas URI)
+   MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/?retryWrites=true&w=majority
 
-## Usage 🚀
+   # Assistant ids – one per chapter (1-14)
+   CHAPTER_1_ASSISTANT_ID=asst_...
+   CHAPTER_2_ASSISTANT_ID=asst_...
+   ...
+   CHAPTER_14_ASSISTANT_ID=asst_...
+   ```
 
-1. Sign up or log in (if you have authentication).
-2. Pick a chapter/section from the sidebar.
-3. Observe the AI automatically send a “section number” or greeting to start the conversation.
-4. Ask questions in the chatbox or follow the prompts.
-5. Reach mastery by answering 3 correct questions in a row, then unlock the next topic.
+3. **Run Dev Server**
+   ```bash
+   npm run dev
+   # open http://localhost:3000
+   ```
 
-## Contributing 🤝
+---
 
-1. Fork the repo.
-2. Create a feature branch (e.g. `git checkout -b feature/new-algebra-content`).
-3. Push and open a pull request describing your changes.
+## Usage Tips
 
-## Roadmap 🛣️
+* Select a chapter + section from the left sidebar; a mini tutor launches instantly.
+* Use voice input by toggling the microphone (Chrome / Edge have native recognition; other browsers fall back to Whisper).
+* Click the paper-clip icon to upload an image.
+* When you reach mastery the section gets a ✅ and confetti appears!
 
-- Expand beyond pre-algebra to more math domains.
-- Support text-to-speech for accessibility.
-- Add built-in “growth mindset” quizzes.
-- Enhance real-time collaboration (e.g., teacher and student viewing the same chat).
+---
 
-## License ⚖️
+## Roadmap
 
-This project is licensed under the MIT License. Feel free to use, modify, and distribute.
+* Autorouter for any uploaded textbook (PDF to section mapping).
+* Analytics dashboard for educators.
+* Offline / low-bandwidth TTS cache.
 
-## Acknowledgements 🙏
+---
 
-We would like to thank the following for their support and contributions:
+## License
 
-- OpenAI for providing the AI models and API access.
-- MongoDB for database solutions.
-- The open-source community for their invaluable tools and libraries.
-- Our beta testers for their feedback and suggestions.
-
-## Contact 📧
-
-For any questions, suggestions, or feedback, please reach out to us at support@interactive-prealgebra.com.
-
-## Stay Connected 🌐
-
-Follow us on social media to stay updated with the latest features and announcements:
-
-- Twitter: [@InteractivePreAlgebra](https://twitter.com/InteractivePreAlgebra)
-- Facebook: [Interactive Pre-Algebra](https://facebook.com/InteractivePreAlgebra)
-- LinkedIn: [Interactive Pre-Algebra AI Textbook](https://linkedin.com/company/interactive-prealgebra)
-
-Thank you for being a part of our journey to make math learning more accessible and enjoyable for everyone!
+MIT © 2025 – Shayan Ahmad & team
 
 ## Authors
-- Shayan Ahmad
-- Ramsha Bilal
-- Izah Sohail
-- Aysa Moma
-- Samroz Ahmad Shoaib
 
+* Shayan Ahmad  
+* Ramsha Bilal  
+* Izah Sohail  
+* Aysa Moma  
+* Samroz Ahmad Shoaib
+
+---
+
+## Acknowledgements
+
+* OpenAI – Assistants, Whisper, TTS.
+* MongoDB – flexible document storage.
+* Supabase – simple image hosting.
+* NYUAD Slush'D 2025 & Nokia for the hackathon platform.

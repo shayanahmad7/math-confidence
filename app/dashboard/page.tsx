@@ -9,14 +9,16 @@ import { supabase } from "@/lib/supabase"
 import { CheckCircle, Circle, Book, LogOut, ChevronDown, ChevronUp } from "lucide-react"
 import Confetti from 'react-confetti'
 
-import Chat1 from "@/components/Chat1"
-import Chat2 from "@/components/Chat2"
-import Chat3 from "@/components/Chat8"
-import Chat4 from "@/components/Chat8"
-import Chat5 from "@/components/Chat8"
-import Chat6 from "@/components/Chat8"
-import Chat7 from "@/components/Chat8"
-import Chat8 from "@/components/Chat8"
+import Chat from "@/components/Chat"
+
+
+
+
+
+
+
+
+
 
 
 const chapters = [
@@ -169,7 +171,7 @@ const chapters = [
   },
 ]
 
-const chatMap = [
+/* const chatMap = [
     Chat1,  // index 0 => "Naming Numbers"
     Chat2,  // index 1 => "Rounding Numbers"
     Chat3,  // index 2 => "Addition of Whole Numbers"
@@ -253,7 +255,25 @@ const chatMap = [
     // Chat81  // index 80 => "Overcoming Math Anxiety"
   ];
 
-    const sectionNames = [ "Naming Numbers", "Rounding Numbers", "Addition of Whole Numbers", "Subtraction of Whole Numbers", "Multiplication of Whole Numbers", "Division of Whole Numbers", "Word Problems", "Quiz 1", "Basic Concepts", "Addition of Integers", "Subtraction of Integers", "Multiplication of Integers", "Division of Integers", "Exponents", "Order of Operations", "Quiz 2", "Basic Concepts", "Reducing Fractions to Lowest Terms", "Changing Fractions to Higher Terms", "Changing Improper Fractions to Mixed Numbers", "Changing Mixed Numbers to Improper Fractions", "Quiz 3", "Multiplying Fractions", "Dividing Fractions", "Adding and Subtracting Fractions", "Complex Fractions", "Reciprocals and Rationalizing Denominators", "Quiz 4", "Introduction to Decimals", "Converting Fractions to Decimals", "Adding and Subtracting Decimals", "Multiplying Decimals", "Dividing Decimals", "Decimals and Fractions", "Rounding Decimals", "Quiz 5", "Understanding Percent", "Calculating Percentages", "Increasing and Decreasing Numbers by Percent", "Percent Problems", "Applications of Percent", "Quiz 6", "Simplifying Algebraic Expressions", "Solving Simple Equations", "Solving Multi-step Equations", "Using Equations to Solve Problems", "Checking Solutions", "Quiz 7", "Understanding Ratios", "Properties of Proportions", "Solving Proportions", "Applications of Proportions", "Similar Figures and Scale Drawings", "Quiz 8", "Points, Lines, and Planes", "Angles and Their Measures", "Constructing Angles and Lines", "Polygons and Circles", "Area and Perimeter", "Volume and Surface Area", "Quiz 9", "Units of Measurement", "Measuring Length", "Measuring Area and Volume", "Temperature and Time", "Converting Units", "Quiz 10", "Introduction to Graphing", "Plotting Points", "Graphing Linear Equations", "Slope and Intercept", "Graphing Inequalities", "Quiz 11", "Understanding Monomials", "Adding and Subtracting Polynomials", "Multiplying Polynomials", "Special Products", "Factoring Polynomials", "Quiz 12", "Final Exam", "Overcoming Math Anxiety"]
+    */
+
+// Helper to compute assistantId <chapter>-<section>
+const getAssistantId = (sectionTitle: string): string | undefined => {
+  for (let c = 0; c < chapters.length; c++) {
+    const idx = chapters[c].sections.findIndex((s) => s.title === sectionTitle)
+    if (idx !== -1) {
+      // Chapters 1-12 have per-section assistants (<chapter>-<section>)
+      // Chapters 13 (Final Exam) and 14 (Supplement) each have a single assistant id equal to the chapter number.
+      if (c + 1 <= 12) {
+        return `${c + 1}-${idx + 1}`
+      }
+      return `${c + 1}` // 13 or 14
+    }
+  }
+  return undefined
+};
+
+const sectionNames = [ "Naming Numbers", "Rounding Numbers", "Addition of Whole Numbers", "Subtraction of Whole Numbers", "Multiplication of Whole Numbers", "Division of Whole Numbers", "Word Problems", "Quiz 1", "Basic Concepts", "Addition of Integers", "Subtraction of Integers", "Multiplication of Integers", "Division of Integers", "Exponents", "Order of Operations", "Quiz 2", "Basic Concepts", "Reducing Fractions to Lowest Terms", "Changing Fractions to Higher Terms", "Changing Improper Fractions to Mixed Numbers", "Changing Mixed Numbers to Improper Fractions", "Quiz 3", "Multiplying Fractions", "Dividing Fractions", "Adding and Subtracting Fractions", "Complex Fractions", "Reciprocals and Rationalizing Denominators", "Quiz 4", "Introduction to Decimals", "Converting Fractions to Decimals", "Adding and Subtracting Decimals", "Multiplying Decimals", "Dividing Decimals", "Decimals and Fractions", "Rounding Decimals", "Quiz 5", "Understanding Percent", "Calculating Percentages", "Increasing and Decreasing Numbers by Percent", "Percent Problems", "Applications of Percent", "Quiz 6", "Simplifying Algebraic Expressions", "Solving Simple Equations", "Solving Multi-step Equations", "Using Equations to Solve Problems", "Checking Solutions", "Quiz 7", "Understanding Ratios", "Properties of Proportions", "Solving Proportions", "Applications of Proportions", "Similar Figures and Scale Drawings", "Quiz 8", "Points, Lines, and Planes", "Angles and Their Measures", "Constructing Angles and Lines", "Polygons and Circles", "Area and Perimeter", "Volume and Surface Area", "Quiz 9", "Units of Measurement", "Measuring Length", "Measuring Area and Volume", "Temperature and Time", "Converting Units", "Quiz 10", "Introduction to Graphing", "Plotting Points", "Graphing Linear Equations", "Slope and Intercept", "Graphing Inequalities", "Quiz 11", "Understanding Monomials", "Adding and Subtracting Polynomials", "Multiplying Polynomials", "Special Products", "Factoring Polynomials", "Quiz 12", "Final Exam", "Overcoming Math Anxiety"]
 
   
     export default function DashboardPage() {
@@ -470,17 +490,12 @@ const chatMap = [
                   </button>
                 </div>
                 {(() => {
-                  const idx = sectionNames.indexOf(selectedSection)
-                  if (idx === -1) {
-                    return <div>No chat component mapped for this section yet.</div>
-                  }
-                  const ChatComponent = chatMap[idx]
-                  if (!ChatComponent) {
-                    return (
-                      <p className="text-indigo-600">The interactive AI tutor for this section will be integrated here.</p>
-                    )
-                  }
-                  return <ChatComponent userId={user.id}/>
+                  const assistantId = getAssistantId(selectedSection)
+                  return <Chat userId={user.id} assistantId={assistantId} key={`${user.id}-${assistantId || 'none'}`} />
+                  
+                  
+                  
+                  
                 })()}
               </div>
             ) : (
