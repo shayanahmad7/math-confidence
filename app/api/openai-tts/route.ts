@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 import { NextResponse } from 'next/server'
 import { OpenAI } from 'openai'
 import fs from 'fs'

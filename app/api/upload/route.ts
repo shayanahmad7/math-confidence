@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
   const filename = crypto.randomUUID()
   const arrayBuffer = await file.arrayBuffer()
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('public')
     .upload(`images/${filename}`, Buffer.from(arrayBuffer), {
       contentType: file.type,
