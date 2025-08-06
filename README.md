@@ -185,6 +185,6 @@ MIT © 2025 - See [LICENSE](LICENSE) file for details
 
 **Made with ❤️ by the Math Confidence Team**
 
-[🌐 Live Demo](https://math-confidence.com) • [📧 Contact](mailto:support@math-confidence.com) • [🐛 Report Bug](https://github.com/shayanahmad7/math-confidence/issues)
+[🌐 Live Demo](https://math-confidence.com) • [📧 Contact](mailto:sa6097@nyu.edu) 
 
 </div>
