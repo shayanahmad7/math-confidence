@@ -41,10 +41,23 @@ export default function Login({ setShowLogin }: LoginProps) {
     
     try {
       console.log('🔄 Calling Supabase signInWithOAuth...')
+      
+      // Determine the correct redirect URL based on environment
+      let redirectUrl
+      if (typeof window !== 'undefined') {
+        // Client-side: use current origin
+        redirectUrl = `${window.location.origin}/dashboard`
+      } else {
+        // Server-side: use environment variable or default
+        redirectUrl = process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard` : '/dashboard'
+      }
+      
+      console.log('🎯 Redirect URL:', redirectUrl)
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: redirectUrl
         }
       })
       

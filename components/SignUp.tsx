@@ -50,10 +50,23 @@ export default function SignUp({ setShowSignUp }: SignUpProps) {
 
   const handleGoogleSignUp = async () => {
     setLoading(true)
+    
+    // Determine the correct redirect URL based on environment
+    let redirectUrl
+    if (typeof window !== 'undefined') {
+      // Client-side: use current origin
+      redirectUrl = `${window.location.origin}/dashboard`
+    } else {
+      // Server-side: use environment variable or default
+      redirectUrl = process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard` : '/dashboard'
+    }
+    
+    console.log('🎯 Redirect URL for Google signup:', redirectUrl)
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/dashboard`
+        redirectTo: redirectUrl
       }
     })
     if (error) {
