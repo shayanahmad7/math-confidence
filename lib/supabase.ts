@@ -7,14 +7,5 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Missing Supabase environment variables")
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    // CRITICAL: Force Supabase to use production site URL
-    flowType: 'pkce',
-    // This ensures Supabase doesn't redirect to localhost
-    detectSessionInUrl: false,
-    autoRefreshToken: true,
-    persistSession: true,
-  },
-})
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 
 export async function GET(request: Request) {
-  console.log('🔐 OAuth Callback Route - Starting...')
+  console.log('🔐 OAuth Callback Route - FRESH START...')
   
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
@@ -11,12 +11,6 @@ export async function GET(request: Request) {
   console.log('  - Origin:', origin)
   console.log('  - Code present:', !!code)
   console.log('  - Code length:', code ? code.length : 0)
-  
-  // CRITICAL: Block any localhost origins immediately
-  if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-    console.log('🚨 BLOCKED: Localhost origin detected - redirecting to production')
-    return NextResponse.redirect('https://math-confidence.com/dashboard')
-  }
   
   // if "next" is in param, use it as the redirect URL
   let next = searchParams.get('next') ?? '/dashboard'
@@ -47,11 +41,29 @@ export async function GET(request: Request) {
         console.log('  - User ID:', data.user?.id)
         console.log('  - Session present:', !!data.session)
         
-        // ALWAYS redirect to production domain - no more localhost logic!
-        const productionUrl = 'https://math-confidence.com'
-        const redirectUrl = `${productionUrl}${next}`
+        // FRESH IMPLEMENTATION: Use exact Supabase docs redirect logic
+        const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
+        const isLocalEnv = process.env.NODE_ENV === 'development'
         
-        console.log('🚀 ALWAYS redirecting to production:', redirectUrl)
+        console.log('🌐 Redirect logic:')
+        console.log('  - Is local env:', isLocalEnv)
+        console.log('  - Forwarded host:', forwardedHost)
+        
+        let redirectUrl: string
+        
+        if (isLocalEnv) {
+          // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
+          redirectUrl = `${origin}${next}`
+          console.log('  - Using local redirect:', redirectUrl)
+        } else if (forwardedHost) {
+          redirectUrl = `https://${forwardedHost}${next}`
+          console.log('  - Using forwarded host redirect:', redirectUrl)
+        } else {
+          redirectUrl = `${origin}${next}`
+          console.log('  - Using origin redirect:', redirectUrl)
+        }
+        
+        console.log('🚀 Redirecting to:', redirectUrl)
         return NextResponse.redirect(redirectUrl)
       }
     } catch (err) {
@@ -66,5 +78,5 @@ export async function GET(request: Request) {
 
   // return the user to an error page with instructions
   console.log('⚠️ Redirecting to auth error page')
-  return NextResponse.redirect('https://math-confidence.com/auth/auth-code-error')
+  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }
