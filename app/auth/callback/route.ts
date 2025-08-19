@@ -12,6 +12,12 @@ export async function GET(request: Request) {
   console.log('  - Code present:', !!code)
   console.log('  - Code length:', code ? code.length : 0)
   
+  // CRITICAL: Block any localhost origins immediately
+  if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+    console.log('🚨 BLOCKED: Localhost origin detected - redirecting to production')
+    return NextResponse.redirect('https://math-confidence.com/dashboard')
+  }
+  
   // if "next" is in param, use it as the redirect URL
   let next = searchParams.get('next') ?? '/dashboard'
   if (!next.startsWith('/')) {
