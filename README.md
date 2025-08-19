@@ -17,14 +17,14 @@ Transform any textbook into an **interactive, AI-powered learning experience**. 
 
 ## ✨ Key Features
 
-| 🎯 Feature | 📋 Description |
-|------------|----------------|
-| **🤖 Per-Section Tutors** | Each chapter/section has its own OpenAI Assistant, ensuring focused, relevant responses |
-| **⚡ Auto-Start Conversations** | Tutors automatically greet learners or send section-specific prompts to begin |
-| **💬 Real-time Streaming** | Messages appear token-by-token for natural chat experience |
-| **💾 Persistent History** | All conversations saved to MongoDB—pick up exactly where you left off |
-| **🎙️ Voice Integration** | Speak your questions (Whisper STT) and hear responses read aloud (OpenAI TTS) |
-| **💪 Growth Mindset** | Encouraging language throughout—mistakes are learning opportunities! |
+| 🎯 Feature                      | 📋 Description                                                                          |
+| ------------------------------- | --------------------------------------------------------------------------------------- |
+| **🤖 Per-Section Tutors**       | Each chapter/section has its own OpenAI Assistant, ensuring focused, relevant responses |
+| **⚡ Auto-Start Conversations** | Tutors automatically greet learners or send section-specific prompts to begin           |
+| **💬 Real-time Streaming**      | Messages appear token-by-token for natural chat experience                              |
+| **💾 Persistent History**       | All conversations saved to MongoDB—pick up exactly where you left off                   |
+| **🎙️ Voice Integration**        | Speak your questions (Whisper STT) and hear responses read aloud (OpenAI TTS)           |
+| **💪 Growth Mindset**           | Encouraging language throughout—mistakes are learning opportunities!                    |
 
 ---
 
@@ -37,6 +37,7 @@ Transform any textbook into an **interactive, AI-powered learning experience**. 
 5. **Start chatting!** The AI tutor will automatically greet you and begin the lesson
 
 ### 💡 Pro Tips
+
 - 🎤 Click the microphone to ask questions with your voice
 - 🔊 Click the speaker icon on AI responses to hear them read aloud
 - 📚 Your progress is automatically saved—come back anytime!
@@ -48,6 +49,7 @@ Transform any textbook into an **interactive, AI-powered learning experience**. 
 Want to adapt this for your own textbook? Here's how:
 
 ### Prerequisites
+
 - Node.js 18+
 - OpenAI API account
 - MongoDB Atlas account
@@ -56,6 +58,7 @@ Want to adapt this for your own textbook? Here's how:
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/shayanahmad7/math-confidence.git
    cd math-confidence
@@ -63,19 +66,20 @@ Want to adapt this for your own textbook? Here's how:
    ```
 
 2. **Environment Setup**
-   
+
    Create `.env.local` with:
+
    ```env
    # 🔐 Supabase Configuration
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-   
+
    # 🤖 OpenAI Configuration
    OPENAI_API_KEY=sk-your_openai_api_key
-   
+
    # 📊 MongoDB Configuration
    MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/
-   
+
    # 🎯 Assistant IDs (one per chapter)
    CHAPTER_1_ASSISTANT_ID=asst_your_chapter_1_assistant_id
    CHAPTER_2_ASSISTANT_ID=asst_your_chapter_2_assistant_id
@@ -93,10 +97,12 @@ Want to adapt this for your own textbook? Here's how:
 ## 📖 Customizing for Your Textbook
 
 ### Step 1: Prepare Your Content
+
 1. **Add your textbook PDF** to `/public/` folder
 2. **Update the PDF embed** in `app/dashboard/page.tsx` (line ~474)
 
 ### Step 2: Create OpenAI Assistants
+
 1. Go to [OpenAI Assistants Playground](https://platform.openai.com/assistants)
 2. **Create one assistant per chapter** with instructions like:
    ```
@@ -107,6 +113,7 @@ Want to adapt this for your own textbook? Here's how:
 3. **Note each Assistant ID** (starts with `asst_`)
 
 ### Step 3: Update Code Structure
+
 1. **Modify chapters array** in `app/dashboard/page.tsx` with your book's structure
 2. **Update environment variables** with your assistant IDs
 3. **Customize welcome text** and book title throughout the app
@@ -158,7 +165,7 @@ graph TB
 ## 👥 Team
 
 - **Shayan Ahmad** - Lead Developer
-- **Ramsha Bilal** - AI/ML Engineer  
+- **Ramsha Bilal** - AI/ML Engineer
 - **Izah Sohail** - Frontend Developer
 - **Aysa Moma** - UX Designer
 - **Samroz Ahmad Shoaib** - Backend Developer
