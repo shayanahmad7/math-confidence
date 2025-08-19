@@ -52,7 +52,7 @@ export default function SignUp({ setShowSignUp }: SignUpProps) {
     setLoading(true)
     
     // HARDCODE the production URL - no more localhost fallbacks!
-    const redirectUrl = 'https://math-confidence-app.vercel.app/dashboard'
+    const redirectUrl = 'https://math-confidence.com/dashboard'
     
     console.log('🎯 Redirect URL for Google signup:', redirectUrl)
     console.log('🌐 Using HARDCODED production URL')

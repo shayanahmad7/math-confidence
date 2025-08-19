@@ -43,7 +43,7 @@ export default function Login({ setShowLogin }: LoginProps) {
       console.log('🔄 Calling Supabase signInWithOAuth...')
       
       // HARDCODE the production URL - no more localhost fallbacks!
-      const redirectUrl = 'https://math-confidence-app.vercel.app/dashboard'
+      const redirectUrl = 'https://math-confidence.com/dashboard'
       
       console.log('🎯 Redirect URL:', redirectUrl)
       console.log('🌐 Using HARDCODED production URL')
