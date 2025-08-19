@@ -51,13 +51,11 @@ export default function SignUp({ setShowSignUp }: SignUpProps) {
   const handleGoogleSignUp = async () => {
     setLoading(true)
     
-    // Get the correct redirect URL - use environment variable if available, otherwise current origin
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
-    const redirectUrl = siteUrl ? `${siteUrl}/dashboard` : `${window.location.origin}/dashboard`
+    // HARDCODE the production URL - no more localhost fallbacks!
+    const redirectUrl = 'https://math-confidence-app.vercel.app/dashboard'
     
     console.log('🎯 Redirect URL for Google signup:', redirectUrl)
-    console.log('🌐 Environment SITE_URL:', siteUrl)
-    console.log('🌐 Current origin:', window.location.origin)
+    console.log('🌐 Using HARDCODED production URL')
     
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
