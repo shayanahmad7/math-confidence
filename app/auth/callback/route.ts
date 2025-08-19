@@ -11,7 +11,6 @@ export async function GET(request: Request) {
   console.log('  - Origin:', origin)
   console.log('  - Code present:', !!code)
   console.log('  - Code length:', code ? code.length : 0)
-  console.log('  - All search params:', Object.fromEntries(searchParams.entries()))
   
   // if "next" is in param, use it as the redirect URL
   let next = searchParams.get('next') ?? '/dashboard'
@@ -42,28 +41,11 @@ export async function GET(request: Request) {
         console.log('  - User ID:', data.user?.id)
         console.log('  - Session present:', !!data.session)
         
-        const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
-        const isLocalEnv = process.env.NODE_ENV === 'development'
+        // ALWAYS redirect to production domain - no more localhost logic!
+        const productionUrl = 'https://math-confidence.com'
+        const redirectUrl = `${productionUrl}${next}`
         
-        console.log('🌐 Redirect logic:')
-        console.log('  - Is local env:', isLocalEnv)
-        console.log('  - Forwarded host:', forwardedHost)
-        
-        let redirectUrl: string
-        
-        if (isLocalEnv) {
-          // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-          redirectUrl = `${origin}${next}`
-          console.log('  - Using local redirect:', redirectUrl)
-        } else if (forwardedHost) {
-          redirectUrl = `https://${forwardedHost}${next}`
-          console.log('  - Using forwarded host redirect:', redirectUrl)
-        } else {
-          redirectUrl = `${origin}${next}`
-          console.log('  - Using origin redirect:', redirectUrl)
-        }
-        
-        console.log('🚀 Redirecting to:', redirectUrl)
+        console.log('🚀 ALWAYS redirecting to production:', redirectUrl)
         return NextResponse.redirect(redirectUrl)
       }
     } catch (err) {
@@ -78,5 +60,5 @@ export async function GET(request: Request) {
 
   // return the user to an error page with instructions
   console.log('⚠️ Redirecting to auth error page')
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+  return NextResponse.redirect('https://math-confidence.com/auth/auth-code-error')
 }

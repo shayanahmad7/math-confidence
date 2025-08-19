@@ -42,17 +42,12 @@ export default function Login({ setShowLogin }: LoginProps) {
     try {
       console.log('🔄 Calling Supabase signInWithOAuth...')
       
-      // HARDCODE the production URL - no more localhost fallbacks!
-      const redirectUrl = 'https://math-confidence.com/dashboard'
-      
-      console.log('🎯 Redirect URL:', redirectUrl)
-      console.log('🌐 Using HARDCODED production URL')
+      // NO redirectTo - let Supabase handle the redirect flow
+      console.log('🎯 No redirectTo - using Supabase default flow')
       
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl
-        }
+        provider: 'google'
+        // No options.redirectTo - let Supabase handle it
       })
       
       if (error) {
