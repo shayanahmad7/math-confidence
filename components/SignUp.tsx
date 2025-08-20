@@ -51,14 +51,11 @@ export default function SignUp({ setShowSignUp }: SignUpProps) {
   const handleGoogleSignUp = async () => {
     setLoading(true)
     
-    // FRESH IMPLEMENTATION: Use exact Supabase docs pattern
-    console.log('🎯 Using fresh Google OAuth implementation')
+    // CORRECT IMPLEMENTATION: Use implicit flow (no redirectTo needed)
+    console.log('🎯 Using correct Google OAuth implementation - implicit flow')
     
     const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: 'https://math-confidence.com/auth/callback'
-      }
+      provider: 'google'
     })
     if (error) {
       alert(error.message)

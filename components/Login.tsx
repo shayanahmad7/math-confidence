@@ -42,12 +42,9 @@ export default function Login({ setShowLogin }: LoginProps) {
     try {
       console.log('🔄 Calling Supabase signInWithOAuth...')
       
-      // FRESH IMPLEMENTATION: Use exact Supabase docs pattern
+      // CORRECT IMPLEMENTATION: Use implicit flow (no redirectTo needed)
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: 'https://math-confidence.com/auth/callback'
-        }
+        provider: 'google'
       })
       
       if (error) {

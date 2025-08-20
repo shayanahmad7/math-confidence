@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
 
 export async function GET(request: Request) {
-  console.log('🔐 OAuth Callback Route - FRESH START...')
+  console.log('🔐 OAuth Callback Route - Simplified for Implicit Flow...')
   
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
@@ -41,28 +41,8 @@ export async function GET(request: Request) {
         console.log('  - User ID:', data.user?.id)
         console.log('  - Session present:', !!data.session)
         
-        // FRESH IMPLEMENTATION: Use exact Supabase docs redirect logic
-        const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
-        const isLocalEnv = process.env.NODE_ENV === 'development'
-        
-        console.log('🌐 Redirect logic:')
-        console.log('  - Is local env:', isLocalEnv)
-        console.log('  - Forwarded host:', forwardedHost)
-        
-        let redirectUrl: string
-        
-        if (isLocalEnv) {
-          // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-          redirectUrl = `${origin}${next}`
-          console.log('  - Using local redirect:', redirectUrl)
-        } else if (forwardedHost) {
-          redirectUrl = `https://${forwardedHost}${next}`
-          console.log('  - Using forwarded host redirect:', redirectUrl)
-        } else {
-          redirectUrl = `${origin}${next}`
-          console.log('  - Using origin redirect:', redirectUrl)
-        }
-        
+        // Simple redirect to dashboard
+        const redirectUrl = `${origin}${next}`
         console.log('🚀 Redirecting to:', redirectUrl)
         return NextResponse.redirect(redirectUrl)
       }

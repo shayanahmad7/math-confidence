@@ -1,98 +1,106 @@
 # Google OAuth Setup for Math Confidence
 
-This guide explains how to configure Google OAuth authentication for the Math Confidence project.
+## Overview
+This guide sets up Google OAuth authentication for the Math Confidence project using **implicit flow** (the simpler approach).
 
-## Prerequisites
-
-1. A Google Cloud project
-2. Access to your Supabase project dashboard
+## What We're Using
+- **OAuth Flow**: Implicit Flow (no `redirectTo` needed)
+- **Supabase**: For authentication backend
+- **Next.js**: For the frontend
 
 ## Step 1: Google Cloud Console Setup
 
+### 1.1 Create OAuth 2.0 Client ID
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select an existing one
-3. Enable the Google+ API and Google Identity API
+2. Select your project or create a new one
+3. Go to **APIs & Services** → **Credentials**
+4. Click **Create Credentials** → **OAuth 2.0 Client ID**
+5. Choose **Web application** as the application type
 
-### Configure OAuth Consent Screen
+### 1.2 Configure Authorized JavaScript Origins
+Add these URLs:
+- `http://localhost:3001` (for local development)
+- `https://math-confidence.com` (for production)
 
-1. Go to **APIs & Services** > **OAuth consent screen**
-2. Choose **External** user type
-3. Fill in the required information:
-   - App name: "Math Confidence"
-   - User support email: Your email
-   - Developer contact information: Your email
-4. Add the following scopes:
-   - `.../auth/userinfo.email`
-   - `.../auth/userinfo.profile`
-   - `openid`
-5. Add your Supabase project domain: `flrcereucqznqvtgiykb.supabase.co`
-6. Save and continue
+### 1.3 Configure Authorized Redirect URIs
+Add these URLs:
+- `https://YOUR_SUPABASE_PROJECT_ID.supabase.co/auth/v1/callback` (Supabase's callback)
+- `http://localhost:3001/auth/callback` (local development)
+- `https://math-confidence.com/auth/callback` (production)
 
-### Create OAuth 2.0 Credentials
+### 1.4 Get Client ID and Secret
+Copy the **Client ID** and **Client Secret** - you'll need these for Supabase.
 
-1. Go to **APIs & Services** > **Credentials**
-2. Click **Create Credentials** > **OAuth client ID**
-3. Choose **Web application**
-4. Add authorized JavaScript origins:
-   - `http://localhost:3000` (for development)
-   - `https://your-production-domain.com` (for production)
-5. Add authorized redirect URIs:
-   - `https://flrcereucqznqvtgiykb.supabase.co/auth/v1/callback`
-6. Copy the **Client ID** and **Client Secret**
+## Step 2: Supabase Dashboard Setup
 
-## Step 2: Supabase Configuration
+### 2.1 Enable Google Provider
+1. Go to your Supabase project dashboard
+2. Navigate to **Authentication** → **Providers**
+3. Find **Google** and click **Edit**
+4. Enable the provider
+5. Paste your **Client ID** and **Client Secret** from Google Cloud Console
+6. Save the configuration
 
-1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
-2. Select the Math Confidence project
-3. Go to **Authentication** > **Providers**
-4. Find **Google** and click **Edit**
-5. Enable Google provider
-6. Enter your Google OAuth credentials:
-   - **Client ID**: Your Google OAuth client ID
-   - **Client Secret**: Your Google OAuth client secret
-7. Save the configuration
+### 2.2 Configure Site URL
+1. In **Authentication** → **Settings**
+2. Set **Site URL** to: `https://math-confidence.com`
+3. Set **Redirect URLs** to include:
+   - `https://math-confidence.com/auth/callback`
+   - `http://localhost:3001/auth/callback`
 
 ## Step 3: Environment Variables
 
-Make sure your `.env.local` file contains:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://flrcereucqznqvtgiykb.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+Make sure your `.env.local` has:
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-## Step 4: Testing
+## Step 4: How It Works
 
-1. Run the development server: `npm run dev`
-2. Go to the login or signup page
-3. Click "Sign in with Google" or "Sign up with Google"
-4. You should be redirected to Google's consent screen
-5. After authorization, you'll be redirected back to the dashboard
+### Implicit Flow (What We're Using)
+1. User clicks "Sign in with Google"
+2. Supabase redirects to Google OAuth
+3. User authenticates with Google
+4. Google redirects back to Supabase
+5. Supabase creates a session and redirects to your app
+6. **No complex callback handling needed!**
+
+### Why This Approach?
+- **Simpler**: No `redirectTo` configuration needed
+- **More reliable**: Supabase handles the OAuth flow
+- **Less error-prone**: Fewer moving parts
+- **Standard**: This is the recommended approach in Supabase docs
+
+## Step 5: Testing
+
+### Local Development
+1. Run `npm run dev` (should start on port 3001)
+2. Go to `http://localhost:3001`
+3. Try Google sign-in
+4. Should redirect to dashboard after successful authentication
+
+### Production
+1. Deploy to Vercel
+2. Test Google sign-in on `https://math-confidence.com`
+3. Should work without localhost redirects
 
 ## Troubleshooting
 
 ### Common Issues
+1. **"Invalid redirect_uri"**: Check Google Cloud Console redirect URIs
+2. **"Provider not enabled"**: Verify Google provider is enabled in Supabase
+3. **"Client ID not found"**: Double-check Client ID in Supabase dashboard
 
-1. **"Invalid redirect URI" error**: Make sure the redirect URI in Google Cloud Console matches exactly with Supabase's callback URL
-2. **"OAuth provider not enabled"**: Ensure Google provider is enabled in Supabase dashboard
-3. **"Client ID not found"**: Verify the client ID and secret are correctly entered in Supabase
+### Debug Steps
+1. Check browser console for errors
+2. Verify Supabase project URL matches your environment variables
+3. Ensure redirect URIs are exactly correct (no trailing slashes)
+4. Check that Google OAuth is enabled in Supabase
 
-### Testing in Development
-
-- Make sure `http://localhost:3000` is added to authorized JavaScript origins in Google Cloud Console
-- The redirect URI should always point to your Supabase project domain, not localhost
-
-## Security Notes
-
-- Never commit your `.env.local` file to version control
-- Keep your Google OAuth client secret secure
-- Consider setting up additional security measures like domain verification for production
-
-## Next Steps
-
-After successful setup, you can:
-
-1. Customize the Google sign-in button appearance
-2. Add additional OAuth providers (GitHub, Facebook, etc.)
-3. Implement user profile management
-4. Add role-based access control
+## What We Fixed
+- ❌ Removed complex `redirectTo` logic that was causing localhost redirects
+- ❌ Simplified the callback route to use basic redirect logic
+- ❌ Eliminated the PKCE flow complexity that wasn't needed
+- ✅ Now using the standard implicit flow as recommended in Supabase docs
+- ✅ Much simpler and more reliable implementation
